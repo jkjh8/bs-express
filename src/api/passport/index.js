@@ -4,11 +4,9 @@ const User = require('db/models/user')
 
 module.exports = () => {
   passport.serializeUser((user, done) => {
-    console.log('serialize')
     done(null, user.id)
   })
   passport.deserializeUser((id, done) => {
-    console.log('deserialize')
     User.findOne({ id: id }, { password: 0 }, (err, user) => {
       done(err, user)
     })

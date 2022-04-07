@@ -47,7 +47,6 @@ router.post('/register', async (req, res) => {
 
 router.post('/', (req, res, next) => {
   passport.authenticate('local', async (err, user, info) => {
-    console.log(err, user, info)
     if (err) {
       logger.error(`사용자 로그인 오류 ${err}`)
       return res.status(500).json({ status: false, error: err })
@@ -88,6 +87,28 @@ router.get('/users', async (req, res) => {
     res.json({ users: r })
   } catch (err) {
     logger.error(`사용자 정보 확인 오류 ${err}`)
+    res.status(500).json({ error: err })
+  }
+})
+
+router.get('/setadmin', async (req, res) => {
+  try {
+    const r = await User.findByIdAndUpdate(req.query.id, {
+      $set: { admin: req.query.admin === 'true' }
+    })
+    res.sendStatus(200)
+  } catch (err) {
+    logger.error(`사용자 권한 변경 오류 ${err}`)
+    res.status(500).json({ error: err })
+  }
+})
+
+router.get('/deleteuser', async (req, res) => {
+  try {
+    await User.deleteOne({ _id: req.query.id })
+    res.sendStatus(200)
+  } catch (err) {
+    logger.error(`사용자 권한 삭제 오류 ${err}`)
     res.status(500).json({ error: err })
   }
 })
