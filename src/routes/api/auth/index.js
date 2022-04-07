@@ -2,6 +2,7 @@ const express = require('express')
 const passport = require('passport')
 const router = express.Router()
 const logger = require('config/logger')
+const redis = require('db/redis')
 
 const User = require('db/models/user')
 
@@ -60,7 +61,7 @@ router.post('/', (req, res, next) => {
         logger.error(`사용자 로그인 오류 ${err}`)
         return res.status(401).json({ status: false, error: err })
       }
-      await User.updateOne(
+      const nUser = await User.updateOne(
         { email: user.email },
         { $set: { loginAt: new Date(), numberOfLogin: user.numberOfLogin + 1 } }
       )
@@ -70,9 +71,11 @@ router.post('/', (req, res, next) => {
   })(req, res, next)
 })
 
-router.get('/logout', (req, res) => {
+router.get('/logout', async (req, res) => {
   try {
+    const id = req.user._id
     logger.info(`사용자 로그아웃 ${req.user.email}`)
+    await redis.client.DEL(`USER:LOGIND:${id}`)
     req.logout()
     res.status(200).json({ user: null, message: 'logout completed' })
   } catch (error) {

@@ -1,15 +1,30 @@
 const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
 const User = require('db/models/user')
+const { client } = require('db/redis')
 
 module.exports = () => {
   passport.serializeUser((user, done) => {
     done(null, user.id)
   })
-  passport.deserializeUser((id, done) => {
-    User.findOne({ id: id }, { password: 0 }, (err, user) => {
-      done(err, user)
-    })
+  passport.deserializeUser(async (id, done) => {
+    try {
+      let user = JSON.parse(await client.get(`USER:LOGIND:${id}`))
+      if (user) {
+        return done(null, user)
+      } else {
+        user = await User.findOne({ id: id }, { password: 0 })
+        await client.SET(
+          `USER:LOGIND:${id}`,
+          JSON.stringify(user),
+          'EX',
+          60 * 60
+        )
+        return done(null, user)
+      }
+    } catch (err) {
+      return done(err, null)
+    }
   })
   passport.use(
     new LocalStrategy(

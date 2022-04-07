@@ -11,12 +11,11 @@ const express = require('express')
 
 const cookieParser = require('cookie-parser')
 const session = require('express-session')
-const MongoStore = require('connect-mongo')
 const RedisStore = require('connect-redis')(session)
 const passport = require('passport')
 
 // connect db
-const client = require('db/redis')
+const { sessionClient } = require('db/redis')
 require('db/mongodb')
 
 // init app
@@ -41,9 +40,13 @@ app.use(express.static(path.join(__dirname, 'public')))
 app.use(
   session({
     secret: process.env.SESSION_PASS,
-    resave: true,
-    saveUninitialized: true,
-    store: new RedisStore({ client })
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      expires: new Date(Date.now() + 3600000)
+    },
+    store: new RedisStore({ client: sessionClient })
   })
 )
 
