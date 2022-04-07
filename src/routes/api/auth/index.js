@@ -6,7 +6,6 @@ const logger = require('config/logger')
 const User = require('db/models/user')
 
 router.get('/', (req, res, next) => {
-  logger.info('get auth')
   if (req.isAuthenticated()) {
     res.json({ user: req.user })
   } else {
@@ -17,7 +16,6 @@ router.get('/', (req, res, next) => {
 router.get('/checkEmail', async (req, res) => {
   try {
     const { email } = req.query
-    console.log(email)
     const r = await User.findOne({ email: email })
     if (r) {
       res.status(200).json({ user: r, status: true })
@@ -58,18 +56,18 @@ router.post('/', (req, res, next) => {
       return res.json({ status: false, ...info })
     }
 
-    req.login(user, (err) => {
+    req.login(user, async (err) => {
       if (err) {
         logger.error(`사용자 로그인 오류 ${err}`)
         return res.status(401).json({ status: false, error: err })
       }
-      logger.info(`사용자 로그인 ${user.email} ~~~ ${res}`)
+      await User.updateOne(
+        { email: user.email },
+        { $set: { loginAt: new Date(), numberOfLogin: user.numberOfLogin + 1 } }
+      )
+      logger.info(`사용자 로그인 ${user.email}`)
+      res.status(200).json({ status: true })
     })
-    res.status(200).json({ status: true })
-    // User.updateOne(
-    //   { email: user.email },
-    //   { $set: { loginAt: new Date(), numberOfLogin: user.numberOfLogin + 1 } }
-    // ).exec()
   })(req, res, next)
 })
 

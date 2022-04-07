@@ -4,15 +4,15 @@
  * Module dependencies.
  */
 
-var app = require('../app')
-var debug = require('debug')('bs:server')
-var http = require('http')
+const app = require('../app')
+const logger = require('config/logger')
+const http = require('http')
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000')
+const port = normalizePort(process.env.PORT || '3000')
 app.set('port', port)
 
 /**
@@ -63,10 +63,10 @@ function onError(error) {
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      console.error(bind + ' requires elevated privileges')
+      logger.error(bind + ' requires elevated privileges')
       process.exit(1)
     case 'EADDRINUSE':
-      console.error(bind + ' is already in use')
+      logger.error(bind + ' is already in use')
       process.exit(1)
     default:
       throw error
@@ -80,6 +80,5 @@ function onError(error) {
 function onListening() {
   var addr = server.address()
   var bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
-  debug('Listening on ' + bind)
-  console.log('Listening on ' + bind)
+  logger.info(`Listening on ${bind}`)
 }
