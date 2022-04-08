@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const logger = require('config/logger')
+const logger = require('logger')
 
 const DeviceLog = require('db/models/deviceLog')
 
@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
     console.log(req.query)
     const searchOptions = []
 
-    if (search && search !== undefined && search !== 'null') {
+    if (search && search !== 'undefined' && search !== 'null') {
       searchOptions.push({ $text: { $search: search } })
     }
 

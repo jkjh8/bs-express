@@ -1,7 +1,7 @@
 const express = require('express')
 const passport = require('passport')
 const router = express.Router()
-const logger = require('config/logger')
+const logger = require('logger')
 const redis = require('db/redis')
 
 const User = require('db/models/user')
