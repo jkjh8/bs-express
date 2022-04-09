@@ -25,6 +25,7 @@
     "passport": "^0.5.2",
     "passport-local": "^1.0.0",
     "redis": "^4.0.6",
+    "socket.io": "^4.4.1",
     "uuid": "^8.3.2",
     "winston": "^3.7.2",
     "winston-daily-rotate-file": "^4.6.1",

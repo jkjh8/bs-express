@@ -19,8 +19,16 @@ app.set('port', port)
  * Create HTTP server.
  */
 
-var server = http.createServer(app)
+const server = http.createServer(app)
 
+// socket io attach
+app.io.attach(server, {
+  cors: {
+    origin: ['http://localhost:8080'],
+    method: ['GET', 'POST']
+  }
+})
+logger.info('Socket IO Attach Server')
 /**
  * Listen on provided port, on all network interfaces.
  */
