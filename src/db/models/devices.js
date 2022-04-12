@@ -12,8 +12,8 @@ module.exports = mongoose.model(
       mode: String,
       channels: Number,
       channel: Number,
-      parent: { type: mongoose.SchemaType.ObjectId, ref: 'Devices' },
-      children: [{ type: mongoose.SchemaType.ObjectId, ref: 'Devices' }]
+      parent: { type: mongoose.Schema.Types.ObjectId, ref: 'Devices' },
+      children: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Devices' }]
     },
     { timestamps: true }
   )

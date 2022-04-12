@@ -23,10 +23,10 @@ const server = http.createServer(app)
 
 // socket io attach
 app.io.attach(server, {
-  cors: {
-    origin: ['http://localhost:8080'],
-    method: ['GET', 'POST']
-  }
+  origin: function (origin, callback) {
+    callback(null, origin)
+  },
+  credentials: true
 })
 logger.info('Socket IO Attach Server')
 /**
