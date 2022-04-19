@@ -2,8 +2,6 @@ const { workerData, parentPort } = require('worker_threads')
 const net = require('net')
 const { clearInterval } = require('timers')
 
-console.log('worker data', workerData)
-
 let client = net.Socket()
 const _ipaddress = workerData
 let connected = false

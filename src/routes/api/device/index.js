@@ -3,6 +3,7 @@ const router = express.Router()
 const logger = require('logger')
 // const redis = require('db/redis')
 const Devices = require('db/models/devices')
+const { qsysRefresh } = require('threads')
 
 router.get('/exists', async (req, res) => {
   try {
@@ -64,6 +65,14 @@ router.get('/delete', async (req, res) => {
     logger.error(`디바이스 삭제 오류 ${err}`)
     res.status(500).json({ error: err })
   }
+})
+
+router.post('/refresh', async (req, res) => {
+  console.log(req.body)
+  if (req.body.deviceType === 'Q-Sys') {
+    qsysRefresh(req.body)
+  }
+  res.send('ok')
 })
 
 module.exports = router

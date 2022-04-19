@@ -11,10 +11,11 @@ function runQsysThread(workerData) {
   workerPool[workerData] = worker
 
   worker.on('message', (msg) => {
-    if (msg.id === 'GetPa') {
+    console.log(msg)
+    if (msg.data && msg.data.id === 'GetPa') {
+      if (msg.data.error) return console.log(msg.data.error)
       client.set(`pa:${workerData}`, JSON.stringify(msg.data.result.Controls), {
-        EX: 10,
-        NX: true
+        EX: 60
       })
     }
   })
@@ -48,3 +49,13 @@ async function loadDevices() {
 }
 
 module.exports.loadDevices = loadDevices
+module.exports.qsysRefresh = async function (device) {
+  workerPool[device.ipaddress].postMessage({
+    command: 'send',
+    data: {
+      id: 'GetStatus',
+      method: 'StatusGet',
+      params: 0
+    }
+  })
+}
