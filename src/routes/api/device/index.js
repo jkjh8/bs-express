@@ -68,7 +68,6 @@ router.get('/delete', async (req, res) => {
 })
 
 router.post('/refresh', async (req, res) => {
-  console.log(req.body)
   if (req.body.deviceType === 'Q-Sys') {
     qsysRefresh(req.body)
   }
