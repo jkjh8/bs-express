@@ -11,20 +11,22 @@ if (workerData) {
   core = new Qrc(workerData)
   core.on('connect', (msg) => {
     logger.info(msg)
-    parentPort.postMessage({ command: 'connect' })
   })
   core.on('error', (msg) => {
     logger.error(msg)
-    parentPort.postMessage({ connamd: 'error' })
   })
   core.on('close', (msg) => {
     logger.warn(msg)
-    parentPort.postMessage({ command: 'close' })
+  })
+  core.on('data', (data) => {
+    parentPort.postMessage({
+      command: 'comm',
+      data: { ipaddress: workerData, ...data }
+    })
   })
   parentPort.on('message', (comm) => {
     commands.push(comm)
     if (!commandInterval) {
-      console.log('start interval')
       queueProcess()
     }
   })
@@ -39,18 +41,20 @@ async function queueProcess() {
 }
 
 async function commandSender() {
-  console.log('interval command')
   if (commands.length) {
     try {
       if (!lock) {
         lock = true
-        const r = await core.send(commands.shift())
-        parentPort.postMessage({ command: 'comm', ipaddress: workerData, ...r })
+        core.send(commands.shift())
+        parentPort.postMessage({
+          command: 'result',
+          ipaddress: workerData,
+          result: 'OK'
+        })
         lock = false
       }
     } catch (err) {
       lock = false
-      console.log('command error', err)
       clearInterval(commandInterval)
       logger.error(`Q-Sys ${workerData} Error: ${JSON.stringify(err)}`)
     }

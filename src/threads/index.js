@@ -2,6 +2,7 @@ const { Worker } = require('worker_threads')
 const { client } = require('../db/redis')
 const logger = require('../logger')
 const Devices = require('../db/models/devices')
+const Qrc = require('./qsysqrc')
 const workerPool = {}
 
 function runQsysThread(workerData) {
@@ -13,30 +14,26 @@ function runQsysThread(workerData) {
   worker.on('message', (comm) => {
     switch (comm.command) {
       case 'comm':
-        dataToQrc(comm)
+        dataToQrc(comm.data)
         break
     }
   })
   worker.on('error', (err) => {
     workerPool[workerData] = null
-    console.error(err)
+    logger.error(`Q-Sys ${workerData} Error: ${JSON.stringify(err)}`)
   })
   worker.on('exit', (code) => {
     workerPool[workerData] = null
-    console.log('exit', workerData, code)
+    logger.warn(`Q-Sys ${workerData} Exit code: ${code}`)
   })
-  // setTimeout(() => {
-  //   worker.postMessage({
-  //     id: 'GetPa',
-  //     method: 'Component.GetControls',
-  //     params: {
-  //       Name: 'PA'
-  //     }
-  //   })
-  // }, 1000)
 }
 
 async function dataToQrc(comm) {
+  if (comm.error) {
+    return logger.error(
+      `Q-Sys ${comm.ipaddress} Error: ${JSON.stringify(comm.error)}`
+    )
+  }
   switch (comm.id) {
     case 'GetPa':
       client.set(`pa:${comm.ipaddress}`, JSON.stringify(comm.result.Controls), {
@@ -54,17 +51,19 @@ async function dataToQrc(comm) {
 async function loadDevices() {
   const devices = await Devices.find({})
   devices.forEach((device) => {
-    runQsysThread(device.ipaddress)
+    if (device.deviceType === 'Q-Sys') {
+      runQsysThread(device.ipaddress)
+    }
   })
 }
 
 module.exports.loadDevices = loadDevices
 module.exports.qsysRefresh = async function (device) {
-  // workerPool[device.ipaddress].postMessage({
-  //   id: 'GetStatus',
-  //   method: 'StatusGet',
-  //   params: 0
-  // })
+  workerPool[device.ipaddress].postMessage({
+    id: 'GetStatus',
+    method: 'StatusGet',
+    params: 0
+  })
   workerPool[device.ipaddress].postMessage({
     id: 'GetPa',
     method: 'Component.GetControls',

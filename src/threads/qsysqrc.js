@@ -30,82 +30,51 @@ module.exports = class Qrc extends EventEmitter {
       )
     })
 
-    // this.client.on('data', (data) => {
-    //   try {
-    //     this._data = Buffer.concat([
-    //       this._data ?? [],
-    //       data.includes(0) ? data.slice(0, data.indexOf(0)) : data
-    //     ])
-    //     if (data.includes(0)) {
-    //       this._completed = true
-    //       this.emit('data', JSON.parse(this._data))
-    //     }
-    //   } catch (err) {
-    //     this.emit('error', err)
-    //   }
-    // })
+    this.client.on('data', (data) => {
+      clearInterval(this._noOpinterval)
+      try {
+        if (this._completed) {
+          this._completed = false
+          this._data = Buffer.alloc(0)
+        }
+        this._data = Buffer.concat([
+          this._data ?? [],
+          data.includes(0) ? data.slice(0, data.indexOf(0)) : data
+        ])
+        if (data.includes(0)) {
+          this._completed = true
+          this.emit('data', JSON.parse(this._data))
+        }
+        this.noOp()
+      } catch (err) {
+        this.noOp()
+        this.emit('error', `Q-Sys ${this._ipaddress} Error: ${err}`)
+      }
+    })
   }
+
   connect() {
     try {
       this.client.connect({ port: 1710, host: this._ipaddress })
     } catch (err) {
-      this.emit('error', err)
+      this.noOp()
+      this.emit('error', `Q-Sys ${this._ipaddress} Error: ${err}`)
     }
   }
 
   send(msg) {
-    // this._completed = false
-    // this.noOp()
-    return new Promise((resolve, reject) => {
-      this._data = null
-      if (this.connected) {
-        // clearInterval(this._noOpinterval)
-        try {
-          this.client.on('data', (data) => {
-            try {
-              this._data = Buffer.concat([
-                this._data ?? Buffer.alloc(0),
-                data.includes(0) ? data.slice(0, data.indexOf(0)) : data
-              ])
-              if (data.includes(0)) {
-                console.log(this._data)
-                console.log(this._data.length)
-                console.log(this._data[this._data.length - 1])
-                const rt = JSON.parse(this._data)
-                this._data = Buffer.alloc(0)
-                if (rt.error) {
-                  reject({ ipaddress: this._ipaddress, error: data.error })
-                }
-                resolve(rt)
-              }
-            } catch (err) {
-              reject(err)
-            }
-          })
-          // const _wait = setInterval(() => {
-          //   if (this._completed) {
-          //     this._completed = false
-          //     clearInterval(_wait)
-          //     const data = JSON.parse(this._data)
-          //     if (data.error) {
-          //       reject({ ipaddress: this._ipaddress, error: data.error })
-          //     }
-          //     resolve(data)
-          //   }
-          // })
-          this.client.write(
-            JSON.stringify({
-              jsonrpc: '2.0',
-              ...msg
-            }) + '\0'
-          )
-        } catch (err) {
-          reject(err)
-        }
-      } else {
-        reject('core not connected')
+    if (this.connected) {
+      try {
+        this.client.write(
+          JSON.stringify({
+            jsonrpc: '2.0',
+            ...msg
+          }) + '\0'
+        )
+      } catch (err) {
+        this.emit('error', err)
       }
-    })
+    }
   }
 
   noOp() {
