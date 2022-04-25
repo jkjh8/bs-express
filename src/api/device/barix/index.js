@@ -7,8 +7,13 @@ function getBarixInfo(workerData) {
     workerData
   })
 
-  worker.on('message', (comm) => {
-    console.log(comm)
+  worker.on('message', async (comm) => {
+    await client.set(
+      `status:${workerData}`,
+      JSON.stringify({ deviceType: 'Barix', ...comm }),
+      { EX: 600 }
+    )
+    worker.terminate()
   })
 
   worker.on('error', (err) => {
@@ -16,8 +21,9 @@ function getBarixInfo(workerData) {
   })
 
   worker.on('exit', (code) => {
-    console.log(code)
-    logger.warn(`Barix ${workerData} Exit code: ${code}`)
+    if (!code === 1) {
+      logger.warn(`Barix ${workerData} Exit code: ${code}`)
+    }
   })
 }
 

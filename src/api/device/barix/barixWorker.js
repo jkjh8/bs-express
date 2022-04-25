@@ -13,16 +13,12 @@ async function getHtml(ipaddress) {
     let status = {}
     const $ = cheerio.load(html.data)
     $('dd').each((i, element) => {
-      status[($(element), find('span:nth-of-type(2)').attr('class'))] = $(
-        element
-      )
+      status[$(element).find('span:nth-of-type(2)').attr('class')] = $(element)
         .find('span:nth-of-type(2)')
         .text()
         .trim()
     })
     parentPort.postMessage(status)
-    parentPort.close()
-    console.log(status)
   } catch (err) {
     logger.error(`Barix ${ipaddress} Error: ${err}`)
   }

@@ -1,9 +1,10 @@
 const express = require('express')
 const router = express.Router()
 const logger = require('logger')
-// const redis = require('db/redis')
+const { client } = require('db/redis')
 const Devices = require('db/models/devices')
-const { qsysRefresh } = require('api/device/qsys')
+// const fnDevice = require('api/device')
+const { getDevices, getDevice } = require('api/device')
 
 router.get('/exists', async (req, res) => {
   try {
@@ -60,18 +61,37 @@ router.put('/', async (req, res) => {
 router.get('/delete', async (req, res) => {
   try {
     await Devices.deleteOne({ _id: req.query.id })
-    res.send('ok')
+    res.send('OK')
   } catch (err) {
     logger.error(`디바이스 삭제 오류 ${err}`)
     res.status(500).json({ error: err })
   }
 })
 
-router.post('/refresh', async (req, res) => {
-  if (req.body.deviceType === 'Q-Sys') {
-    qsysRefresh(req.body)
+router.get('/getstatusinfo', async (req, res) => {
+  try {
+    res.json(JSON.parse(await client.get(`status:${req.query.ipaddress}`)))
+  } catch (err) {
+    res.status(500).json({ error: err })
   }
-  res.send('ok')
+})
+
+router.post('/refresh', async (req, res) => {
+  try {
+    await getDevice(req.body)
+    res.send('OK')
+  } catch (err) {
+    res.status(500).json({ error: err })
+  }
+})
+
+router.get('/refreshall', async (req, res) => {
+  try {
+    await getDevices()
+    res.send('OK')
+  } catch (err) {
+    res.status(500).json({ error: err })
+  }
 })
 
 module.exports = router

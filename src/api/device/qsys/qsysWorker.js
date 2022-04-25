@@ -1,22 +1,25 @@
 const { workerData, parentPort } = require('worker_threads')
-const logger = require('../../../logger')
 const Qrc = require('./qsysqrc')
 // const { client } = require('../db/redis')
 const commands = []
 let commandInterval
 let core
+let coreStatus
 let lock = false
 
 if (workerData) {
   core = new Qrc(workerData)
   core.on('connect', (msg) => {
-    logger.info(msg)
+    coreStatus = true
+    parentPort.postMessage({ command: 'connect', data: msg })
   })
   core.on('error', (msg) => {
-    logger.error(msg)
+    coreStatus = false
+    parentPort.postMessage({ command: 'error', data: msg })
   })
   core.on('close', (msg) => {
-    logger.warn(msg)
+    coreStatus = false
+    parentPort.postMessage({ command: 'close', data: msg })
   })
   core.on('data', (data) => {
     parentPort.postMessage({
@@ -41,6 +44,7 @@ async function queueProcess() {
 }
 
 async function commandSender() {
+  if (!coreStatus) return
   if (commands.length) {
     try {
       if (!lock) {
@@ -56,7 +60,10 @@ async function commandSender() {
     } catch (err) {
       lock = false
       clearInterval(commandInterval)
-      logger.error(`Q-Sys ${workerData} Error: ${JSON.stringify(err)}`)
+      parentPort.postMessage({
+        comm: 'error',
+        data: `Q-Sys ${workerData} Error: ${JSON.stringify(err)}`
+      })
     }
   } else {
     lock = false

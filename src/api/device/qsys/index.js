@@ -1,8 +1,7 @@
 const { Worker } = require('worker_threads')
-const { client } = require('../../../db/redis')
-const logger = require('../../../logger')
-const Devices = require('../../../db/models/devices')
-const Qrc = require('./qsysqrc')
+const { client } = require('db/redis')
+const logger = require('logger')
+
 const workerPool = {}
 
 function runQsysThread(workerData) {
@@ -15,6 +14,16 @@ function runQsysThread(workerData) {
     switch (comm.command) {
       case 'comm':
         dataToQrc(comm.data)
+        break
+      case 'connect':
+        logger.info(comm.data)
+        break
+      case 'error':
+        logger.error(comm.data)
+        break
+      case 'close':
+        logger.warn(comm.data)
+        workerPool[workerData] = null
         break
     }
   })
@@ -36,34 +45,48 @@ async function dataToQrc(comm) {
   }
   switch (comm.id) {
     case 'GetPa':
-      client.set(`pa:${comm.ipaddress}`, JSON.stringify(comm.result.Controls), {
-        EX: 60
-      })
+      client.set(
+        `pa:${comm.ipaddress}`,
+        JSON.stringify({ deviceType: 'Q-Sys', ...comm.result.Controls }),
+        {
+          EX: 60
+        }
+      )
       break
     case 'GetStatus':
-      client.set(`status:${comm.ipaddress}`, JSON.stringify(comm.result), {
-        EX: 600
-      })
+      client.set(
+        `status:${comm.ipaddress}`,
+        JSON.stringify({ deviceType: 'Q-Sys', ...comm.result }),
+        {
+          EX: 600
+        }
+      )
       break
   }
 }
 
-async function loadDevices() {
-  const devices = await Devices.find({})
-  devices.forEach((device) => {
-    if (device.deviceType === 'Q-Sys') {
-      runQsysThread(device.ipaddress)
-    }
-  })
+module.exports.sendMsgToQSys = (device, obj) => {
+  if (!workerPool[device.ipaddress]) {
+    runQsysThread(device.ipaddress)
+  }
+  workerPool[device.ipaddress].postMessage(obj)
 }
 
-module.exports.loadDevices = loadDevices
-module.exports.qsysRefresh = async function (device) {
+module.exports.qsysGetStatus = (device) => {
+  if (!workerPool[device.ipaddress]) {
+    runQsysThread(device.ipaddress)
+  }
   workerPool[device.ipaddress].postMessage({
     id: 'GetStatus',
     method: 'StatusGet',
     params: 0
   })
+}
+
+module.exports.qsysGetPa = (device) => {
+  if (!workerPool[device.ipaddress]) {
+    runQsysThread(device.ipaddress)
+  }
   workerPool[device.ipaddress].postMessage({
     id: 'GetPa',
     method: 'Component.GetControls',
