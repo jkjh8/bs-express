@@ -79,7 +79,7 @@ app.use('/api', require('./routes/api'))
 //   next(createError(404))
 // })
 
-const { loadDevices } = require('./threads')
+const { loadDevices } = require('./api/device/qsys')
 loadDevices()
 
 module.exports = app
