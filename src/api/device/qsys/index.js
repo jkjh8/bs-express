@@ -1,12 +1,12 @@
 const { Worker } = require('worker_threads')
-const { client } = require('../db/redis')
-const logger = require('../logger')
-const Devices = require('../db/models/devices')
+const { client } = require('../../../db/redis')
+const logger = require('../../../logger')
+const Devices = require('../../../db/models/devices')
 const Qrc = require('./qsysqrc')
 const workerPool = {}
 
 function runQsysThread(workerData) {
-  const worker = new Worker('./src/threads/qsysWorker.js', {
+  const worker = new Worker('./src/api/device/qsys/qsysWorker.js', {
     workerData
   })
   workerPool[workerData] = worker

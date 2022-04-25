@@ -3,7 +3,7 @@ const router = express.Router()
 const logger = require('logger')
 // const redis = require('db/redis')
 const Devices = require('db/models/devices')
-const { qsysRefresh } = require('threads')
+const { qsysRefresh } = require('api/device/qsys')
 
 router.get('/exists', async (req, res) => {
   try {

@@ -1,5 +1,5 @@
 const { workerData, parentPort } = require('worker_threads')
-const logger = require('../logger')
+const logger = require('../../../logger')
 const Qrc = require('./qsysqrc')
 // const { client } = require('../db/redis')
 const commands = []
