@@ -1,5 +1,6 @@
 const { Worker } = require('worker_threads')
 const { client } = require('db/redis')
+const Devices = require('db/models/devices')
 const logger = require('logger')
 
 const workerPool = {}
@@ -10,7 +11,7 @@ function runQsysThread(workerData) {
   })
   workerPool[workerData] = worker
 
-  worker.on('message', (comm) => {
+  worker.on('message', async (comm) => {
     switch (comm.command) {
       case 'comm':
         dataToQrc(comm.data)
@@ -26,13 +27,25 @@ function runQsysThread(workerData) {
         workerPool[workerData] = null
         break
     }
+    await Devices.updateOne(
+      { ipaddress: workerData },
+      { $set: { status: true } }
+    )
   })
-  worker.on('error', (err) => {
+  worker.on('error', async (err) => {
     workerPool[workerData] = null
+    await Devices.updateOne(
+      { ipaddress: workerData },
+      { $set: { status: false } }
+    )
     logger.error(`Q-Sys ${workerData} Error: ${JSON.stringify(err)}`)
   })
-  worker.on('exit', (code) => {
+  worker.on('exit', async (code) => {
     workerPool[workerData] = null
+    await Devices.updateOne(
+      { ipaddress: workerData },
+      { $set: { status: false } }
+    )
     logger.warn(`Q-Sys ${workerData} Exit code: ${code}`)
   })
 }

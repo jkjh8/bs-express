@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const logger = require('logger')
+const eventlog = require('api/eventlog')
 const { client } = require('db/redis')
 const Devices = require('db/models/devices')
 // const fnDevice = require('api/device')
@@ -38,9 +39,14 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
+    console.log(req.user)
     const device = new Devices({
       ...req.body
     }).save()
+    eventlog.info({
+      id: req.user.email,
+      message: `디바이스 추가 IP: ${req.body.ipaddress} Type: ${req.body.deviceType} Name: ${req.body.name}`
+    })
     res.json({ result: 'ok' })
   } catch (err) {
     logger.error(`디바이스 추가 오류 ${err}`)
@@ -51,9 +57,13 @@ router.post('/', async (req, res) => {
 router.put('/', async (req, res) => {
   try {
     const r = await Devices.findOneAndUpdate({ _id: req.body._id }, req.body)
+    eventlog.info({
+      id: req.user.email,
+      message: `디바이스 수정 IP: ${req.body.ipaddress} Type: ${req.body.deviceType} Name: ${req.body.name}`
+    })
     res.json({ result: r })
   } catch (err) {
-    logger.error(`디바이스 추가 오류 ${err}`)
+    logger.error(`디바이스 수정 오류 ${err}`)
     res.status(500).json({ error: err })
   }
 })
@@ -61,6 +71,10 @@ router.put('/', async (req, res) => {
 router.get('/delete', async (req, res) => {
   try {
     await Devices.deleteOne({ _id: req.query.id })
+    eventlog.info({
+      id: req.user.email,
+      message: `디바이스 삭제 IP: ${req.body.ipaddress} Type: ${req.body.deviceType} Name: ${req.body.name}`
+    })
     res.send('OK')
   } catch (err) {
     logger.error(`디바이스 삭제 오류 ${err}`)

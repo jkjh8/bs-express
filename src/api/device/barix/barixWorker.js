@@ -18,8 +18,11 @@ async function getHtml(ipaddress) {
         .text()
         .trim()
     })
-    parentPort.postMessage(status)
+    parentPort.postMessage({ command: 'comm', data: status })
   } catch (err) {
-    logger.error(`Barix ${ipaddress} Error: ${err}`)
+    parentPort.postMessage({
+      command: 'error',
+      data: `Barix ${ipaddress} Error: ${err}`
+    })
   }
 }

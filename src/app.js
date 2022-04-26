@@ -79,7 +79,7 @@ app.use('/api', require('./routes/api'))
 //   next(createError(404))
 // })
 
-const { getDevices } = require('./api/device')
-getDevices()
+const { startTimeline } = require('./api/device')
+startTimeline()
 
 module.exports = app

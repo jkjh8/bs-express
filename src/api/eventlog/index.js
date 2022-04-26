@@ -1,4 +1,4 @@
-const Log = require('db/models/eventLog')
+const Log = require('db/models/eventlog')
 const logger = require('logger')
 
 module.exports.info = async (msg) => {

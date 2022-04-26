@@ -1,5 +1,6 @@
 const { Worker } = require('worker_threads')
 const { client } = require('db/redis')
+const Devices = require('db/models/devices')
 const logger = require('logger')
 
 function getBarixInfo(workerData) {
@@ -8,15 +9,31 @@ function getBarixInfo(workerData) {
   })
 
   worker.on('message', async (comm) => {
-    await client.set(
-      `status:${workerData}`,
-      JSON.stringify({ deviceType: 'Barix', ...comm }),
-      { EX: 600 }
-    )
+    if (comm.command === 'comm') {
+      await client.set(
+        `status:${workerData}`,
+        JSON.stringify({ deviceType: 'Barix', ...comm.data }),
+        { EX: 600 }
+      )
+      await Devices.updateOne(
+        { ipaddress: workerData },
+        { $set: { status: true } }
+      )
+    } else {
+      await Devices.updateOne(
+        { ipaddress: workerData },
+        { $set: { status: false } }
+      )
+      logger.error(comm.data)
+    }
     worker.terminate()
   })
 
-  worker.on('error', (err) => {
+  worker.on('error', async (err) => {
+    await Devices.updateOne(
+      { ipaddress: workerData },
+      { $set: { status: false } }
+    )
     logger.error(`Barix ${workerData} Error: ${JSON.stringify(err)}`)
   })
 

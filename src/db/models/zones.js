@@ -1,18 +1,14 @@
 const mongoose = require('mongoose')
 
 module.exports = mongoose.model(
-  'Devices',
+  'Zones',
   new mongoose.Schema(
     {
       index: Number,
       name: String,
-      ipaddress: { type: String, unique: true },
-      port: { type: Number, default: 4444 },
-      deviceType: String,
-      mode: String,
       channels: Number,
-      channel: Number,
-      status: Boolean
+      core: { type: mongoose.Schema.Types.ObjectId, ref: 'Devices' },
+      children: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Devices' }]
     },
     { timestamps: true }
   )

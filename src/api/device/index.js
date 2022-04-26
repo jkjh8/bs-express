@@ -3,12 +3,14 @@ const logger = require('logger')
 const { sendMsgToQSys, qsysGetStatus, qsysGetPa } = require('./qsys')
 const { getBarixInfo } = require('./barix')
 
+let dataTimeline
+
 module.exports.qsysRefresh = (device) => {
   qsysGetStatus(device)
   qsysGetPa(device)
 }
 
-module.exports.getDevices = () => {
+function getDevices() {
   return new Promise(async (resolve, reject) => {
     setTimeout(() => {
       reject('Timeout')
@@ -18,8 +20,10 @@ module.exports.getDevices = () => {
       for (let i = 0; i < devices.length; i++) {
         switch (devices[i].deviceType) {
           case 'Q-Sys':
-            qsysGetPa(devices[i])
-            qsysGetStatus(devices[i])
+            if (devices[i].mode !== 'Local') {
+              qsysGetPa(devices[i])
+              qsysGetStatus(devices[i])
+            }
             break
           case 'Barix':
             getBarixInfo(devices[i].ipaddress)
@@ -31,6 +35,7 @@ module.exports.getDevices = () => {
     }
   })
 }
+module.exports.getDevices = getDevices
 
 module.exports.getDevice = (device) => {
   return new Promise((resolve, reject) => {
@@ -40,8 +45,10 @@ module.exports.getDevice = (device) => {
     try {
       switch (device.deviceType) {
         case 'Q-Sys':
-          qsysGetPa(device)
-          qsysGetStatus(device)
+          if (device.mode !== 'Local') {
+            qsysGetPa(device)
+            qsysGetStatus(device)
+          }
           break
         case 'Barix':
           getBarixInfo(device.ipaddress)
@@ -51,4 +58,14 @@ module.exports.getDevice = (device) => {
       reject(err)
     }
   })
+}
+
+module.exports.startTimeline = () => {
+  dataTimeline = setInterval(async () => {
+    await getDevices()
+  }, 55000)
+}
+
+module.exports.clearTimeline = () => {
+  clearInterval(dataTimeline)
 }
