@@ -9,5 +9,6 @@ router.use('/auth', require('./auth'))
 router.use('/admin', require('./admin'))
 router.use('/eventlog', require('./eventlog'))
 router.use('/device', require('./device'))
+router.use('/zones', require('./zones'))
 
 module.exports = router
