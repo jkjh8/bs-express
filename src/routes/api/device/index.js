@@ -43,6 +43,7 @@ router.post('/', async (req, res) => {
     const device = new Devices({
       ...req.body
     }).save()
+    await getDevice(req.body)
     logger.info(`디바이스 추가 ${JSON.stringify(req.body)}`)
     eventlog.info({
       id: req.user.email,
@@ -58,6 +59,7 @@ router.post('/', async (req, res) => {
 router.put('/', async (req, res) => {
   try {
     const r = await Devices.findOneAndUpdate({ _id: req.body._id }, req.body)
+    await getDevice(req.body)
     logger.info(`디바이스 수정 ${JSON.stringify(req.body)}`)
     eventlog.info({
       id: req.user.email,

@@ -82,4 +82,5 @@ app.use('/api', require('./routes/api'))
 const { startTimeline } = require('./api/device')
 startTimeline()
 
+global.app = app
 module.exports = app

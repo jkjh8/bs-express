@@ -10,7 +10,7 @@ mongoose
     logger.info('Mongodb Connected')
   })
   .catch((e) => {
-    logger.error('Mongodb Connect Error ', e)
+    logger.error(`Mongodb Connect Error ${e}`)
   })
 
 module.exports = mongoose.connection
