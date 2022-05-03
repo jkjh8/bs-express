@@ -43,6 +43,7 @@ router.post('/', async (req, res) => {
     const device = new Devices({
       ...req.body
     }).save()
+    logger.info(`디바이스 추가 ${JSON.stringify(req.body)}`)
     eventlog.info({
       id: req.user.email,
       message: `디바이스 추가 IP: ${req.body.ipaddress} Type: ${req.body.deviceType} Name: ${req.body.name}`
@@ -57,6 +58,7 @@ router.post('/', async (req, res) => {
 router.put('/', async (req, res) => {
   try {
     const r = await Devices.findOneAndUpdate({ _id: req.body._id }, req.body)
+    logger.info(`디바이스 수정 ${JSON.stringify(req.body)}`)
     eventlog.info({
       id: req.user.email,
       message: `디바이스 수정 IP: ${req.body.ipaddress} Type: ${req.body.deviceType} Name: ${req.body.name}`
@@ -71,9 +73,10 @@ router.put('/', async (req, res) => {
 router.get('/delete', async (req, res) => {
   try {
     await Devices.deleteOne({ _id: req.query.id })
+    logger.info(`디바이스 삭제 ${JSON.stringify(req.query)}`)
     eventlog.info({
       id: req.user.email,
-      message: `디바이스 삭제 IP: ${req.body.ipaddress} Type: ${req.body.deviceType} Name: ${req.body.name}`
+      message: `디바이스 삭제 ID: ${req.query.id}`
     })
     res.send('OK')
   } catch (err) {

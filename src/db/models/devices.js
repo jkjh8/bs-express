@@ -9,6 +9,7 @@ module.exports = mongoose.model(
       ipaddress: { type: String, unique: true },
       port: { type: Number, default: 4444 },
       deviceType: String,
+      model: String,
       mode: String,
       channels: Number,
       channel: Number,
