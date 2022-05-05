@@ -39,8 +39,35 @@ module.exports.logger = async (msg) => {
     await log.save()
 
     // 콘솔에 표시
-    const date = new Date()
-    if (log.level !== 2 && log.level !== 5) {
+    cliLog(log)
+  } catch (err) {
+    throw err
+  }
+}
+
+function cliLog(log) {
+  switch (log.level) {
+    case 2:
+    case 5:
+      console.error(
+        clc.red(
+          `${log.priority.toUpperCase()} ${moment().format(
+            'YYYY-MM-DD hh:mm:ss a'
+          )} ${log.message}`
+        )
+      )
+      break
+    case 1:
+    case 4:
+      console.log(
+        clc.yellow(
+          `${log.priority.toUpperCase()} ${moment().format(
+            'YYYY-MM-DD hh:mm:ss a'
+          )} ${log.message}`
+        )
+      )
+      break
+    default:
       console.log(
         clc.green(
           `${log.priority.toUpperCase()} ${moment().format(
@@ -48,16 +75,6 @@ module.exports.logger = async (msg) => {
           )} ${log.message}`
         )
       )
-    } else {
-      console.log(
-        clc.red(
-          `${log.priority.toUpperCase()} ${moment().format(
-            'YYYY-MM-DD hh:mm:ss a'
-          )} ${log.message}`
-        )
-      )
-    }
-  } catch (err) {
-    throw err
+      break
   }
 }
