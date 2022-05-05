@@ -2,7 +2,7 @@
 
 require('app-module-path').addPath(__dirname)
 const path = require('path')
-const logger = require('./logger')
+const { logger } = require('api/logger')
 
 // const createError = require('http-errors')
 const httpLogger = require('morgan')

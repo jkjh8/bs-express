@@ -1,4 +1,4 @@
-const logger = require('../logger')
+const { logger } = require('api/logger')
 const { createClient } = require('redis')
 
 const sessionClient = createClient({
@@ -13,13 +13,18 @@ const client = createClient({
 })
 
 async function connectRedis() {
-  client.on('error', (err) => logger.error(`Redis Client Error, ${err}`))
+  client.on('error', (err) =>
+    logger({ level: 5, message: `Redis Client Error, ${JSON.stringify(err)}` })
+  )
   sessionClient.on('error', (err) =>
-    logger.error(`Redis Session Client Error, ${err}`)
+    logger({
+      level: 5,
+      message: `Redis Session Client Error, ${JSON.stringify(err)}`
+    })
   )
   await client.connect()
   await sessionClient.connect()
-  logger.info('Redis Clients Connected')
+  logger('Redis Clients Connected')
 }
 
 connectRedis()

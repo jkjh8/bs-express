@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const logger = require('logger')
+const { logger } = require('api/logger')
 
 mongoose
   .connect(
@@ -7,10 +7,10 @@ mongoose
     { useNewUrlParser: true }
   )
   .then(() => {
-    logger.info('Mongodb Connected')
+    logger('Mongodb Connected')
   })
   .catch((e) => {
-    logger.error(`Mongodb Connect Error ${e}`)
+    logger({ level: 5, message: `Mongodb Connect Error ${e}` })
   })
 
 module.exports = mongoose.connection

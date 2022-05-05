@@ -4,12 +4,13 @@ const mongoosePaginate = require('mongoose-paginate-v2')
 
 const eventlogSchema = new mongoose.Schema(
   {
-    source: { type: String },
-    priority: { type: String, require: true, default: 'info' },
-    id: { type: String },
-    zones: { type: Array },
-    message: { type: String },
-    search: { type: String }
+    source: String,
+    level: Number,
+    priority: String,
+    id: String,
+    zones: Array,
+    message: String,
+    search: String
   },
   {
     timestamps: true

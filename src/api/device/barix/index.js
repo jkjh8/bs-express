@@ -1,7 +1,7 @@
 const { Worker } = require('worker_threads')
 const { client } = require('db/redis')
 const Devices = require('db/models/devices')
-const logger = require('logger')
+const { logger } = require('api/logger')
 
 function getBarixInfo(workerData) {
   const worker = new Worker('./src/api/device/barix/barixWorker.js', {
@@ -24,7 +24,7 @@ function getBarixInfo(workerData) {
         { ipaddress: workerData },
         { $set: { status: false } }
       )
-      logger.error(comm.data)
+      logger({ level: 5, message: `${comm.data}` })
     }
     worker.terminate()
   })
@@ -34,12 +34,15 @@ function getBarixInfo(workerData) {
       { ipaddress: workerData },
       { $set: { status: false } }
     )
-    logger.error(`Barix ${workerData} Error: ${JSON.stringify(err)}`)
+    logger({
+      level: 5,
+      message: `Barix ${workerData} Error: ${JSON.stringify(err)}`
+    })
   })
 
   worker.on('exit', (code) => {
     if (!code === 1) {
-      logger.warn(`Barix ${workerData} Exit code: ${code}`)
+      logger({ level: 4, message: `Barix ${workerData} Exit code: ${code}` })
     }
   })
 }

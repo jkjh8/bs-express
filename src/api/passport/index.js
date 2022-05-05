@@ -18,7 +18,7 @@ module.exports = () => {
           `USER:LOGIND:${id}`,
           JSON.stringify(user),
           'EX',
-          60 * 60
+          60 * 5
         )
         return done(null, user)
       }

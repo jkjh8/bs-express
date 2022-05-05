@@ -5,7 +5,7 @@
  */
 
 const app = require('../app')
-const logger = require('logger')
+const { logger } = require('api/logger')
 const http = require('http')
 
 /**
@@ -28,7 +28,7 @@ app.io.attach(server, {
   },
   credentials: true
 })
-logger.info('Socket IO Attach Server')
+logger({ level: 3, message: 'Socket IO Attach Server' })
 /**
  * Listen on provided port, on all network interfaces.
  */
@@ -71,10 +71,10 @@ function onError(error) {
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      logger.error(bind + ' requires elevated privileges')
+      logger({ level: 5, message: `${bind} requires elevated privileges` })
       process.exit(1)
     case 'EADDRINUSE':
-      logger.error(bind + ' is already in use')
+      logger({ level: 5, message: `${bind} is already in use` })
       process.exit(1)
     default:
       throw error
@@ -88,5 +88,5 @@ function onError(error) {
 function onListening() {
   var addr = server.address()
   var bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
-  logger.info(`Listening on ${bind}`)
+  logger({ level: 3, message: `Listening on ${bind}` })
 }

@@ -1,5 +1,4 @@
 const { workerData, parentPort } = require('worker_threads')
-const logger = require('../../../logger')
 const cheerio = require('cheerio')
 const axios = require('axios')
 

@@ -1,5 +1,4 @@
 const Devices = require('db/models/devices')
-const logger = require('logger')
 const { sendMsgToQSys, qsysGetStatus, qsysGetPa } = require('./qsys')
 const { getBarixInfo } = require('./barix')
 
