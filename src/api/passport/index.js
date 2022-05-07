@@ -9,19 +9,8 @@ module.exports = () => {
   })
   passport.deserializeUser(async (id, done) => {
     try {
-      let user = JSON.parse(await client.get(`USER:LOGIND:${id}`))
-      if (user) {
-        return done(null, user)
-      } else {
-        user = await User.findOne({ id: id }, { password: 0 })
-        await client.SET(
-          `USER:LOGIND:${id}`,
-          JSON.stringify(user),
-          'EX',
-          60 * 5
-        )
-        return done(null, user)
-      }
+      let user = await User.findOne({ id: id }, { password: 0 })
+      return done(null, user)
     } catch (err) {
       return done(err, null)
     }

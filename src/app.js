@@ -12,12 +12,11 @@ const { Server } = require('socket.io')
 
 const cookieParser = require('cookie-parser')
 const session = require('express-session')
-const RedisStore = require('connect-redis')(session)
 const passport = require('passport')
+const MongoStore = require('connect-mongo')
 
 // connect db
-const { sessionClient } = require('db/redis')
-require('db/mongodb')
+const mongoose = require('db/mongodb')
 
 // init app
 const app = express()
@@ -48,7 +47,9 @@ const sessionOptions = session({
     httpOnly: true,
     expires: new Date(Date.now() + 3600000)
   },
-  store: new RedisStore({ client: sessionClient })
+  store: MongoStore.create({
+    mongoUrl: `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@mongodb:27017/bs`
+  })
 })
 app.use(sessionOptions)
 
