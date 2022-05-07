@@ -13,7 +13,7 @@ router.get('/exists', async (req, res) => {
   } catch (err) {
     logger({
       level: 5,
-      id: req.user.email,
+      id: req.user.email ?? 'undefined',
       message: `디바이스 인덱스 검증 오류 ${JSON.stringify(err)}`
     })
     res.status(500).json({ error: err })
@@ -27,7 +27,7 @@ router.get('/ipexists', async (req, res) => {
   } catch (err) {
     logger({
       level: 5,
-      id: req.user.email,
+      id: req.user.email ?? 'undefined',
       message: `디바이스 IP검증 오류 ${JSON.stringify(err)}`
     })
     res.status(500).json({ error: err })
@@ -41,7 +41,7 @@ router.get('/', async (req, res) => {
   } catch (err) {
     logger({
       level: 5,
-      id: req.user.email,
+      id: req.user.email ?? 'undefined',
       message: `디바이스 리스트 호출 오류 ${JSON.stringify(err)}`
     })
     res.status(500).json({ error: err })
@@ -49,6 +49,10 @@ router.get('/', async (req, res) => {
 })
 
 router.post('/', async (req, res) => {
+  let user = ''
+  if (req.user && req.user.email) {
+    user = req.user.email
+  }
   try {
     console.log(req.user)
     const device = new Devices({
@@ -57,14 +61,14 @@ router.post('/', async (req, res) => {
     await getDevice(req.body)
     logger({
       level: 0,
-      id: req.user.email,
+      id: user,
       message: `디바이스 추가 Name: ${req.body.name} IPaddress: ${req.body.ipaddress}`
     })
     res.json({ result: 'ok' })
   } catch (err) {
     logger({
       level: 2,
-      id: req.user.email,
+      id: user,
       message: `디바이스 추가 오류 ${JSON.stringify(err)}`
     })
     res.status(500).json({ error: err })
@@ -77,14 +81,14 @@ router.put('/', async (req, res) => {
     await getDevice(req.body)
     logger({
       level: 0,
-      id: req.user.email,
+      id: req.user.email ?? 'undefined',
       message: `디바이스 수정 Name: ${req.body.name} IPaddress: ${req.body.ipaddress}`
     })
     res.json({ result: r })
   } catch (err) {
     logger({
       level: 2,
-      id: req.user.email,
+      id: req.user.email ? req.user.email : 'undefined',
       message: `디바이스 수정 오류 ${JSON.stringify(err)}`
     })
     res.status(500).json({ error: err })
@@ -92,18 +96,23 @@ router.put('/', async (req, res) => {
 })
 
 router.get('/delete', async (req, res) => {
+  console.log(req.query)
+  let user = ''
+  if (req.user && req.user.email) {
+    user = req.user.email
+  }
   try {
     await Devices.deleteOne({ _id: req.query.id })
     logger({
       level: 0,
-      id: req.user.email,
+      id: user,
       message: `디바이스 삭제 Name: ${req.query.name} IPaddress: ${req.query.ipaddress}`
     })
     res.send('OK')
   } catch (err) {
     logger({
       level: 2,
-      id: req.user.email,
+      id: user,
       message: `디바이스 삭제 오류 ${JSON.stringify(err)}`
     })
     res.status(500).json({ error: err })
@@ -116,7 +125,7 @@ router.get('/getstatusinfo', async (req, res) => {
   } catch (err) {
     logger({
       level: 5,
-      id: req.user.email,
+      id: req.user.email ?? 'undefined',
       message: `디바이스 정보 호출 ${JSON.stringify(err)}`
     })
     res.status(500).json({ error: err })
@@ -130,7 +139,7 @@ router.post('/refresh', async (req, res) => {
   } catch (err) {
     logger({
       level: 5,
-      id: req.user.email,
+      id: req.user.email ?? 'undefined',
       message: `디바이스 갱신 오류 ${JSON.stringify(err)}`
     })
     res.status(500).json({ error: err })
@@ -144,7 +153,7 @@ router.get('/refreshall', async (req, res) => {
   } catch (err) {
     logger({
       level: 5,
-      id: req.user.email,
+      id: req.user.email ?? 'undefined',
       message: `디바이스 전체갱신 오류 ${JSON.stringify(err)}`
     })
     res.status(500).json({ error: err })

@@ -13,47 +13,37 @@ const levels = {
 
 module.exports.logger = async (msg) => {
   try {
-    let log
-    if (msg && msg.level) {
-      log = new Log({
-        level: msg.level,
-        priority: levels[msg.level],
-        message: msg.message
-      })
-    } else if (typeof msg === 'string') {
-      log = new Log({
-        level: 3,
-        priority: levels[3],
-        message: msg
-      })
-    }
-    if (msg.source) {
-      log.source = msg.source
-    }
-    if (msg.id) {
-      log.id = msg.id
-    }
-    if (msg.zones && msg.zones.length) {
-      log.zones = msg.zones
-    }
-    await log.save()
+    msg.priority = levels[msg.level]
+    const logMessage = new Log(msg)
+    await logMessage.save()
+    // if (msg.source) {
+    //   logs.source = msg.source
+    // }
+    // if (msg.id) {
+    //   logs.id = msg.id
+    // }
+    // if (msg.zones && msg.zones.length) {
+    //   logs.zones = msg.zones
+    // }
+    // const rt = new Log(logs)
+    // await rt.save()
 
     // 콘솔에 표시
-    cliLog(log)
+    cliLog(msg)
   } catch (err) {
     throw err
   }
 }
 
-function cliLog(log) {
-  switch (log.level) {
+function cliLog(logs) {
+  switch (logs.level) {
     case 2:
     case 5:
       console.error(
         clc.red(
-          `${log.priority.toUpperCase()} ${moment().format(
+          `${logs.priority.toUpperCase()} ${moment().format(
             'YYYY-MM-DD hh:mm:ss a'
-          )} ${log.message}`
+          )} ${logs.message}`
         )
       )
       break
@@ -61,18 +51,18 @@ function cliLog(log) {
     case 4:
       console.log(
         clc.yellow(
-          `${log.priority.toUpperCase()} ${moment().format(
+          `${logs.priority.toUpperCase()} ${moment().format(
             'YYYY-MM-DD hh:mm:ss a'
-          )} ${log.message}`
+          )} ${logs.message}`
         )
       )
       break
     default:
       console.log(
         clc.green(
-          `${log.priority.toUpperCase()} ${moment().format(
+          `${logs.priority.toUpperCase()} ${moment().format(
             'YYYY-MM-DD hh:mm:ss a'
-          )} ${log.message}`
+          )} ${logs.message}`
         )
       )
       break

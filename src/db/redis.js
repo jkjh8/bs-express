@@ -24,7 +24,7 @@ async function connectRedis() {
   )
   await client.connect()
   await sessionClient.connect()
-  logger('Redis Clients Connected')
+  logger({ level: 3, message: 'Redis Clients Connected' })
 }
 
 connectRedis()

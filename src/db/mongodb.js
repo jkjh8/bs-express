@@ -7,7 +7,7 @@ mongoose
     { useNewUrlParser: true }
   )
   .then(() => {
-    logger('Mongodb Connected')
+    logger({ level: 3, message: 'Mongodb Connected' })
   })
   .catch((e) => {
     logger({ level: 5, message: `Mongodb Connect Error ${e}` })

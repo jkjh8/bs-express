@@ -7,7 +7,7 @@ router.get('/', async (req, res) => {
   try {
     const { limit, page, search } = req.query
     const searchOptions = []
-    if (!req.user.admin) {
+    if (!req.user || !req.user.admin) {
       searchOptions.push({ level: { $lt: 3 } })
     }
     if (search && search !== 'undifined' && search !== 'null') {
