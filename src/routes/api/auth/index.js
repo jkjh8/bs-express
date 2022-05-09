@@ -2,7 +2,6 @@ const express = require('express')
 const passport = require('passport')
 const router = express.Router()
 const { logger } = require('api/logger')
-const redis = require('db/redis')
 
 const User = require('db/models/user')
 
@@ -78,7 +77,6 @@ router.get('/logout', async (req, res) => {
   try {
     const id = req.user._id
     logger({ level: 3, message: `사용자 로그아웃 ${req.user.email}` })
-    await redis.client.DEL(`USER:LOGIND:${id}`)
     req.logout()
     res.status(200).json({ user: null, message: 'logout completed' })
   } catch (err) {
@@ -111,7 +109,10 @@ router.get('/setadmin', async (req, res) => {
 
 router.get('/deleteuser', async (req, res) => {
   try {
+    console.log(req.query)
     await User.deleteOne({ _id: req.query.id })
+    logger({ level: 3, id: req.user.email, message: `사용자 삭제 Name: ${req.query.id}`})
+    req.logout()
     res.sendStatus(200)
   } catch (err) {
     logger({ level: 5, message: `사용자 삭제 오류 ${JSON.stringify(err)}` })
