@@ -27,17 +27,11 @@ function runQsysThread(workerData) {
         workerPool[workerData] = null
         break
     }
-    await Devices.updateOne(
-      { ipaddress: workerData },
-      { $set: { status: true } }
-    )
+    await client.HSET('status', workerData, true)
   })
   worker.on('error', async (err) => {
     workerPool[workerData] = null
-    await Devices.updateOne(
-      { ipaddress: workerData },
-      { $set: { status: false } }
-    )
+    await client.HSET('status', workerData, false)
     logger({
       level: 5,
       message: `Q-Sys ${workerData} Error: ${JSON.stringify(err)}`
@@ -45,10 +39,7 @@ function runQsysThread(workerData) {
   })
   worker.on('exit', async (code) => {
     workerPool[workerData] = null
-    await Devices.updateOne(
-      { ipaddress: workerData },
-      { $set: { status: false } }
-    )
+    await client.HSET('status', workerData, false)
     logger({ level: 4, message: `Q-Sys ${workerData} Exit code: ${code}` })
   })
 }
@@ -62,13 +53,7 @@ async function dataToQrc(comm) {
   }
   switch (comm.id) {
     case 'GetPa':
-      client.set(
-        `pa:${comm.ipaddress}`,
-        JSON.stringify({ deviceType: 'Q-Sys', ...comm.result.Controls }),
-        {
-          EX: 60
-        }
-      )
+      client.HSET('pa', comm.ipaddress, JSON.stringify({ deviceType: 'Q-Sys', ...comm.result }))
       break
     case 'GetStatus':
       client.set(

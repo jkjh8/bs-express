@@ -15,21 +15,16 @@ function getBarixInfo(workerData) {
         JSON.stringify({ deviceType: 'Barix', ...comm.data }),
         { EX: 600 }
       )
-      await Devices.updateOne(
-        { ipaddress: workerData },
-        { $set: { status: true } }
-      )
+      await client.HSET('status', workerData, true)
     } else {
-      await Devices.updateOne(
-        { ipaddress: workerData },
-        { $set: { status: false } }
-      )
+      await client.HSET('status', workerData, false)
       logger({ level: 5, message: `${comm.data}` })
     }
     worker.terminate()
   })
 
   worker.on('error', async (err) => {
+    await client.HSET('status', workerData, false)
     await Devices.updateOne(
       { ipaddress: workerData },
       { $set: { status: false } }

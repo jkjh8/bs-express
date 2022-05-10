@@ -1,7 +1,6 @@
 const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
 const User = require('db/models/user')
-const { client } = require('db/redis')
 
 module.exports = () => {
   passport.serializeUser((user, done) => {

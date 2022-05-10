@@ -20,7 +20,6 @@ router.get('/exists', async (req, res) => {
 router.get('/existsChildren', async (req, res) => {
   try {
     const r = await Zones.find({ children: {$elemMatch: {$eq: req.query.id}} })
-    console.log(r)
     return res.json({ result: r})
   } catch (error) {
     console.log(error)
@@ -83,12 +82,12 @@ router.put('/', async (req, res) => {
       id: req.user.email,
       message: `방송구간 수정 오류 ${JSON.stringify(err)}`
     })
+    res.status(500).json({ error: err })
   }
 })
 
 router.put('/addchildrens', async(req, res) => {
   try {
-    console.log(req.body)
     const { id, childrens } = req.body
     const r = await Zones.updateOne({ _id: id}, { $set: { children: childrens}})
     console.log(r)
@@ -99,6 +98,7 @@ router.put('/addchildrens', async(req, res) => {
       id: req.user.email,
       message: `방송구간 지역 추가 오류 ${JSON.stringify(err)}`
     })
+    res.status(500).json({ error: err })
   }
 })
 

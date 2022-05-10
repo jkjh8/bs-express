@@ -6,37 +6,9 @@ const Devices = require('db/models/devices')
 // const fnDevice = require('api/device')
 const { getDevices, getDevice } = require('api/device')
 
-router.get('/exists', async (req, res) => {
-  try {
-    const r = await Devices.exists({ index: req.query.index })
-    return res.json({ result: r })
-  } catch (err) {
-    logger({
-      level: 5,
-      id: req.user.email ?? 'undefined',
-      message: `디바이스 인덱스 검증 오류 ${JSON.stringify(err)}`
-    })
-    res.status(500).json({ error: err })
-  }
-})
-
-router.get('/ipexists', async (req, res) => {
-  try {
-    const r = await Devices.exists({ ipaddress: req.query.ipaddr })
-    return res.json({ result: r })
-  } catch (err) {
-    logger({
-      level: 5,
-      id: req.user.email ?? 'undefined',
-      message: `디바이스 IP검증 오류 ${JSON.stringify(err)}`
-    })
-    res.status(500).json({ error: err })
-  }
-})
-
 router.get('/', async (req, res) => {
   try {
-    const r = await Devices.find({})
+    const r = await Devices.find({}).sort({ index: 1})
     res.json(r)
   } catch (err) {
     logger({
@@ -90,6 +62,71 @@ router.put('/', async (req, res) => {
       level: 2,
       id: req.user.email ? req.user.email : 'undefined',
       message: `디바이스 수정 오류 ${JSON.stringify(err)}`
+    })
+    res.status(500).json({ error: err })
+  }
+})
+
+router.get('/exists', async (req, res) => {
+  try {
+    const r = await Devices.exists({ index: req.query.index })
+    return res.json({ result: r })
+  } catch (err) {
+    logger({
+      level: 5,
+      id: req.user.email ?? 'undefined',
+      message: `디바이스 인덱스 검증 오류 ${JSON.stringify(err)}`
+    })
+    res.status(500).json({ error: err })
+  }
+})
+
+router.get('/ipexists', async (req, res) => {
+  try {
+    const r = await Devices.exists({ ipaddress: req.query.ipaddr })
+    return res.json({ result: r })
+  } catch (err) {
+    logger({
+      level: 5,
+      id: req.user.email ?? 'undefined',
+      message: `디바이스 IP검증 오류 ${JSON.stringify(err)}`
+    })
+    res.status(500).json({ error: err })
+  }
+})
+
+router.get('/status', async(req, res) => {
+  let user = ''
+  if (req.user && req.user.email) {
+    user = req.user.email
+  }
+  try {
+    const r = await client.HGETALL('status')
+    return res.json(r)
+  } catch (err) {
+    logger({
+      level: 5,
+      id: user,
+      message: `디바이스 상태 오류 ${JSON.stringify(err)}`
+    })
+    res.status(500).json({ error: err })
+  }
+})
+
+router.get('/pa', async (req, res) => {
+  let user = ''
+  if (req.user && req.user.email) {
+    user = req.user.email
+  }
+
+  try {
+    const r = await client.HGETALL('pa')
+    res.json(r)
+  } catch (err) {
+    logger({
+      level: 5,
+      id: user,
+      message: `PA 모듈 상태 오류 ${JSON.stringify(err)}`
     })
     res.status(500).json({ error: err })
   }

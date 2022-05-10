@@ -43,7 +43,8 @@ module.exports = class Qrc extends EventEmitter {
         ])
         if (data.includes(0)) {
           this._completed = true
-          this.emit('data', JSON.parse(this._data))
+          // this.emit('data', JSON.parse(this._data))
+          this.parser(JSON.parse(this._data))
         }
         this.noOp()
       } catch (err) {
@@ -51,6 +52,36 @@ module.exports = class Qrc extends EventEmitter {
         this.emit('error', `Q-Sys ${this._ipaddress} Error: ${err}`)
       }
     })
+  }
+
+  parser (data) {
+    if (data && data.id) {
+      switch(data.id) {
+        case 'GetPa':
+          const arr = data.result.Controls
+          const active = []
+          const gain = []
+          const mute = []
+          for (let i=0; i<arr.length; i++ ) {
+            for (let i = 0; i < arr.length; i++) {
+              if (arr[i].Name.match(/zone.\d+.gain/)) {
+                const channel = arr[i].Name.replace(/[^0-9]/g, '')
+                gain[channel - 1] = arr[i].Value
+              } else if (arr[i].Name.match(/zone.\d+.mute/)) {
+                const channel = arr[i].Name.replace(/[^0-9]/g, '')
+                mute[channel - 1] = arr[i].Value
+              } else if (arr[i].Name.match(/zone.\d+.active/)) {
+                const channel = arr[i].Name.replace(/[^0-9]/g, '')
+                active[channel - 1] = arr[i].Value
+              }
+            }
+          }
+          this.emit('data', { id: 'GetPa', result: {gain, mute, active}})
+          break
+        default:
+          this.emit('data', data)
+      }
+    }
   }
 
   connect() {
