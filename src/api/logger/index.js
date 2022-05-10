@@ -2,6 +2,7 @@ const Log = require('db/models/eventlog')
 const clc = require('cli-color')
 const moment = require('moment')
 
+moment.locale('ko')
 const levels = {
   0: 'info',
   1: 'warn',

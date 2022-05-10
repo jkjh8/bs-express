@@ -9,11 +9,7 @@ module.exports.qsysRefresh = (device) => {
   qsysGetPa(device)
 }
 
-function getDevices() {
-  return new Promise(async (resolve, reject) => {
-    setTimeout(() => {
-      reject('Timeout')
-    }, 5000)
+async function getDevices() {
     try {
       const devices = await Devices.find({})
       for (let i = 0; i < devices.length; i++) {
@@ -26,21 +22,20 @@ function getDevices() {
             break
           case 'Barix':
             getBarixInfo(devices[i].ipaddress)
+            break
         }
       }
-      resolve()
     } catch (err) {
-      reject(err)
+      logger({
+      level: 5,
+      message: `Device Status Error: ${JSON.stringify(err)}`
+    })
     }
-  })
 }
+
 module.exports.getDevices = getDevices
 
-module.exports.getDevice = (device) => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      reject('Timeout')
-    }, 5000)
+module.exports.getDevice = async (device) => {
     try {
       switch (device.deviceType) {
         case 'Q-Sys':
@@ -51,16 +46,20 @@ module.exports.getDevice = (device) => {
           break
         case 'Barix':
           getBarixInfo(device.ipaddress)
+          break
       }
       resolve()
     } catch (err) {
-      reject(err)
+      logger({
+      level: 5,
+      message: `Device Status Error: ${JSON.stringify(err)}`
+    })
     }
-  })
 }
 
 module.exports.startTimeline = () => {
   dataTimeline = setInterval(async () => {
+    console.log('Get')
     await getDevices()
   }, 55000)
 }
