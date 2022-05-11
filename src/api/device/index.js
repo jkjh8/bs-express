@@ -59,7 +59,6 @@ module.exports.getDevice = async (device) => {
 
 module.exports.startTimeline = () => {
   dataTimeline = setInterval(async () => {
-    console.log('Get')
     await getDevices()
   }, 55000)
 }

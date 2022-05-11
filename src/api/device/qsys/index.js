@@ -1,7 +1,8 @@
 const { Worker } = require('worker_threads')
 const { client } = require('db/redis')
-const Devices = require('db/models/devices')
 const { logger } = require('api/logger')
+const Devices = require('db/models/devices')
+const Zones = require('db/models/zones')
 
 const workerPool = {}
 
@@ -83,6 +84,22 @@ module.exports.qsysGetStatus = (device) => {
     method: 'StatusGet',
     params: 0
   })
+}
+
+module.exports.qsysSetTx = async (zoneId) => {
+  const zone = Zones.find({}).populate('core').populate({ path: 'children', options: { retainNullValues: true } })
+
+  const { core, children } = zone
+
+  
+  if (!workerPool[core.ipaddress]) {
+    runQsysThread(core.ipaddress)
+  }
+
+  for (let i = 0; i<children.length; i++) {
+    console.log(children[i])
+  }
+
 }
 
 module.exports.qsysGetPa = (device) => {

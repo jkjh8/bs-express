@@ -4,13 +4,18 @@ const { logger } = require('api/logger')
 const Zones = require('db/models/zones')
 
 router.get('/exists', async (req, res) => {
+  let user = ''
+  if (req.user && req.user.email) {
+    user = req.user.email
+  }
+
   try {
     const r = await Zones.exists({ index: req.query.index })
     return res.json({ result: r })
   } catch (err) {
     logger({
       level: 5,
-      id: req.user.email,
+      id: user,
       message: `방송구간 인덱스 검증 오류 ${JSON.stringify(err)}`
     })
     res.status(500).json({ error: err })
@@ -18,6 +23,11 @@ router.get('/exists', async (req, res) => {
 })
 
 router.get('/existsChildren', async (req, res) => {
+  let user = ''
+  if (req.user && req.user.email) {
+    user = req.user.email
+  }
+
   try {
     const r = await Zones.find({ children: {$elemMatch: {$eq: req.query.id}} })
     return res.json({ result: r})
@@ -25,7 +35,7 @@ router.get('/existsChildren', async (req, res) => {
     console.log(error)
     logger({
       level: 5,
-      id: req.user.email,
+      id: user,
       message: `방송구간 중복 확인 오류 ${JSON.stringify(err)}`
     })
     res.status(500).json({ error: err })
@@ -33,13 +43,18 @@ router.get('/existsChildren', async (req, res) => {
 })
 
 router.get('/', async (req, res) => {
+  let user = ''
+  if (req.user && req.user.email) {
+    user = req.user.email
+  }
+
   try {
     const r = await Zones.find({}).populate('core').populate({path: 'children', options: { retainNullValues: true}})
     res.json(r)
   } catch (err) {
     logger({
       level: 5,
-      id: req.user.email,
+      id: user,
       message: `방송구간 호출 오류 ${JSON.stringify(err)}`
     })
     res.status(500).json({ error: err })
@@ -47,6 +62,11 @@ router.get('/', async (req, res) => {
 })
 
 router.post('/', async (req, res) => {
+  let user = ''
+  if (req.user && req.user.email) {
+    user = req.user.email
+  }
+
   try {
     const zone = new Zones({
       ...req.body
@@ -54,13 +74,13 @@ router.post('/', async (req, res) => {
     logger({
       level: 0,
       id: req.user.email,
-      message: `방송구간 추가 Name: ${req.body.name} Core: ${req.body.core}`
+      message: `방송구간 추가 Name: ${req.body.name} Core: ${req.body.core.ipaddress}`
     })
     res.json({ result: 'ok' })
   } catch (err) {
     logger({
       level: 5,
-      id: req.user.email,
+      id: req.user && req.user.email ? req.user.email : '',
       message: `방송구간 추가 오류 ${JSON.stringify(err)}`
     })
     res.status(500).json({ error: err })
@@ -72,14 +92,14 @@ router.put('/', async (req, res) => {
     const r = await Zones.findOneAndUpdate({ _id: req.body._id }, req.body)
     logger({
       level: 0,
-      id: req.user.email,
-      message: `방송구간 수정 Name: ${req.body.name} Core: ${req.body.core}`
+      id: req.user && req.user.email ? req.user.email : '',
+      message: `방송구간 수정 Name: ${req.body.name} Core: ${req.body.core.ipaddress}`
     })
     res.json({ result: 'ok' })
   } catch (err) {
     logger({
       level: 5,
-      id: req.user.email,
+      id: req.user && req.user.email ? req.user.email : '',
       message: `방송구간 수정 오류 ${JSON.stringify(err)}`
     })
     res.status(500).json({ error: err })

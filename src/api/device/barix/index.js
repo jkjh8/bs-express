@@ -8,7 +8,6 @@ function getBarixInfo(workerData) {
   })
 
   worker.on('message', async (comm) => {
-    console.log(comm)
     if (comm.command === 'comm') {
       await client.set(
         `status:${workerData}`,
@@ -27,8 +26,9 @@ function getBarixInfo(workerData) {
     await client.HSET('status', workerData, false)
     logger({
       level: 5,
-      message: `Barix ${workerData} Error: ${JSON.stringify(err)}`
+      message: `Barix ${workerData} not get data`
     })
+    worker.terminate()
   })
 
   worker.on('exit', (code) => {
