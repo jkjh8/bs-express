@@ -17,19 +17,6 @@ module.exports.logger = async (msg) => {
     msg.priority = levels[msg.level]
     const logMessage = new Log(msg)
     await logMessage.save()
-    // if (msg.source) {
-    //   logs.source = msg.source
-    // }
-    // if (msg.id) {
-    //   logs.id = msg.id
-    // }
-    // if (msg.zones && msg.zones.length) {
-    //   logs.zones = msg.zones
-    // }
-    // const rt = new Log(logs)
-    // await rt.save()
-
-    // 콘솔에 표시
     cliLog(msg)
   } catch (err) {
     throw err
@@ -68,4 +55,15 @@ function cliLog(logs) {
       )
       break
   }
+}
+
+module.exports.loggerArr = async (level, user, msg) => {
+  const logMessage = new Log({
+    priority: levels[level],
+    level: level,
+    user: user && user.email ? user.email : '',
+    message: msg
+  })
+  await logMessage.save()
+  cliLog(logMessage)
 }
