@@ -5,6 +5,7 @@ module.exports = class Qrc extends EventEmitter {
   constructor(ipaddress) {
     super()
     this.client = net.Socket()
+    this.client.setTimeout(5000)
     this._ipaddress = ipaddress
     this.connected = false
     this._data = Buffer.alloc(0)
@@ -22,12 +23,14 @@ module.exports = class Qrc extends EventEmitter {
       this.emit('close', `Q-Sys ${this._ipaddress} disconnected`)
     })
 
+    this.client.on('timeout', () => {
+      this.client.end()
+      this.emit('error', new Error(`Socket Timeout`))
+    })
+
     this.client.on('error', (err) => {
       this.connected = false
-      this.emit(
-        'error',
-        `Q-Sys ${this._ipoaddress} socket error ${JSON.stringify(err)}`
-      )
+      this.emit('error', err)
     })
 
     this.client.on('data', (data) => {
@@ -54,15 +57,15 @@ module.exports = class Qrc extends EventEmitter {
     })
   }
 
-  parser (data) {
+  parser(data) {
     if (data && data.id) {
-      switch(data.id) {
+      switch (data.id) {
         case 'GetPa':
           const arr = data.result.Controls
           const active = []
           const gain = []
           const mute = []
-          for (let i=0; i<arr.length; i++ ) {
+          for (let i = 0; i < arr.length; i++) {
             for (let i = 0; i < arr.length; i++) {
               if (arr[i].Name.match(/zone.\d+.gain/)) {
                 const channel = arr[i].Name.replace(/[^0-9]/g, '')
@@ -76,7 +79,7 @@ module.exports = class Qrc extends EventEmitter {
               }
             }
           }
-          this.emit('data', { id: 'GetPa', result: {gain, mute, active}})
+          this.emit('data', { id: 'GetPa', result: { gain, mute, active } })
           break
         default:
           this.emit('data', data)

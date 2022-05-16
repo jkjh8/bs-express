@@ -1,6 +1,8 @@
 const express = require('express')
 const router = express.Router()
+const { loggerArr } = require('api/logger')
 const EventLog = require('db/models/eventlog')
+
 const Hangul = require('hangul-js')
 
 router.get('/', async (req, res) => {
@@ -16,13 +18,15 @@ router.get('/', async (req, res) => {
       })
     }
     const paginateOptions = { page, limit, sort: { createdAt: -1 } }
-    const r = await EventLog.paginate(
-      searchOptions.length ? { $and: searchOptions } : {},
-      paginateOptions
+    return res.json(
+      await EventLog.paginate(
+        searchOptions.length ? { $and: searchOptions } : {},
+        paginateOptions
+      )
     )
-    res.json(r)
   } catch (err) {
-    res.status(500).json({ error: err })
+    loggerArr(5, req.user, `로그 수집 에러 ${err}`)
+    return res.status(500).json({ error: err })
   }
 })
 

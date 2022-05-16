@@ -26,7 +26,7 @@ function getBarixInfo(workerData) {
     await client.HSET('status', workerData, false)
     logger({
       level: 5,
-      message: `Barix ${workerData} not get data`
+      message: `Barix ${workerData} ${err}`
     })
     worker.terminate()
   })

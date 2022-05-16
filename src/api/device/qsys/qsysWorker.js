@@ -13,10 +13,6 @@ if (workerData) {
     coreStatus = true
     parentPort.postMessage({ command: 'connect', data: msg })
   })
-  core.on('error', (msg) => {
-    coreStatus = false
-    parentPort.postMessage({ command: 'error', data: msg })
-  })
   core.on('close', (msg) => {
     coreStatus = false
     parentPort.postMessage({ command: 'close', data: msg })
@@ -26,6 +22,10 @@ if (workerData) {
       command: 'comm',
       data: { ipaddress: workerData, ...data }
     })
+  })
+  core.on('error', (err) => {
+    coreStatus = false
+    throw err
   })
   parentPort.on('message', (comm) => {
     commands.push(comm)

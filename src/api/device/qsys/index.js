@@ -1,6 +1,6 @@
 const { Worker } = require('worker_threads')
 const { client } = require('db/redis')
-const { logger } = require('api/logger')
+const { logger, loggerArr } = require('api/logger')
 const Devices = require('db/models/devices')
 const Zones = require('db/models/zones')
 
@@ -18,13 +18,10 @@ function runQsysThread(workerData) {
         dataToQrc(comm.data)
         break
       case 'connect':
-        logger({ level: 3, message: `${comm.data}` })
-        break
-      case 'error':
-        logger({ level: 5, message: `${comm.data}` })
+        loggerArr(3, 'Server', comm.data)
         break
       case 'close':
-        logger({ level: 4, message: `${comm.data}` })
+        loggerArr(4, 'Server', comm.data)
         workerPool[workerData] = null
         break
     }
@@ -33,28 +30,29 @@ function runQsysThread(workerData) {
   worker.on('error', async (err) => {
     workerPool[workerData] = null
     await client.HSET('status', workerData, false)
-    logger({
-      level: 5,
-      message: `Q-Sys ${workerData} Error: ${JSON.stringify(err)}`
-    })
+    loggerArr(5, 'Server', `Q-Sys ${workerData} Error ${err}`)
   })
   worker.on('exit', async (code) => {
     workerPool[workerData] = null
     await client.HSET('status', workerData, false)
-    logger({ level: 4, message: `Q-Sys ${workerData} Exit code: ${code}` })
+    loggerArr(4, 'Server', `Q-Sys ${workerData} Exit ${code}`)
   })
 }
 
 async function dataToQrc(comm) {
-  if (comm.error) {
-    return logger({
-      level: 5,
-      message: `Q-Sys ${comm.ipaddress} Error: ${JSON.stringify(comm.error)}`
-    })
-  }
+  // if (comm.error) {
+  //   return logger({
+  //     level: 5,
+  //     message: `Q-Sys ${comm.ipaddress} Error: ${JSON.stringify(comm.error)}`
+  //   })
+  // }
   switch (comm.id) {
     case 'GetPa':
-      client.HSET('pa', comm.ipaddress, JSON.stringify({ deviceType: 'Q-Sys', ...comm.result }))
+      client.HSET(
+        'pa',
+        comm.ipaddress,
+        JSON.stringify({ deviceType: 'Q-Sys', ...comm.result })
+      )
       break
     case 'GetStatus':
       client.set(
@@ -87,19 +85,19 @@ module.exports.qsysGetStatus = (device) => {
 }
 
 module.exports.qsysSetTx = async (zoneId) => {
-  const zone = Zones.find({}).populate('core').populate({ path: 'children', options: { retainNullValues: true } })
+  const zone = Zones.find({})
+    .populate('core')
+    .populate({ path: 'children', options: { retainNullValues: true } })
 
   const { core, children } = zone
 
-  
   if (!workerPool[core.ipaddress]) {
     runQsysThread(core.ipaddress)
   }
 
-  for (let i = 0; i<children.length; i++) {
+  for (let i = 0; i < children.length; i++) {
     console.log(children[i])
   }
-
 }
 
 module.exports.qsysGetPa = (device) => {
