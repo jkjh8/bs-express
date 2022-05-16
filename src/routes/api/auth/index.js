@@ -1,30 +1,29 @@
 const express = require('express')
 const passport = require('passport')
 const router = express.Router()
-const { logger } = require('api/logger')
+const { logger, loggerArr } = require('api/logger')
 
 const User = require('db/models/user')
 
 router.get('/', (req, res, next) => {
   if (req.isAuthenticated()) {
-    res.json({ user: req.user })
+    return res.json({ user: req.user })
   } else {
-    res.send({ user: null })
+    return res.send({ user: null })
   }
 })
 
 router.get('/checkEmail', async (req, res) => {
   try {
-    const { email } = req.query
-    const r = await User.findOne({ email: email })
+    const r = await User.findOne({ email: req.query.email })
     if (r) {
-      res.status(200).json({ user: r, status: true })
+      return res.status(200).json({ user: r, status: true })
     } else {
-      res.status(200).json({ user: null, status: false })
+      return res.status(200).json({ user: null, status: false })
     }
   } catch (err) {
-    logger({ level: 5, message: JSON.stringify(err) })
-    res.status(500).json({ error: err, status: false })
+    loggerArr(5, 'Server', err)
+    return res.status(500).json({ error: err, status: false })
   }
 })
 
@@ -37,10 +36,10 @@ router.post('/register', async (req, res) => {
   const user = new User({ name, email, password })
   try {
     await user.save()
-    logger({ level: 3, message: `회원가입: ${email}` })
+    loggerArr(3, 'Server', `회원가입: ${email}`)
     return res.status(200).json(user)
   } catch (error) {
-    logger({ level: 5, message: `회원가입 오류 ${JSON.stringify(err)}` })
+    loggerArr(5, 'Server', `회원가입 오류 ${err}`)
     return res.status(500).json({ message: error.message })
   }
 })
@@ -48,7 +47,7 @@ router.post('/register', async (req, res) => {
 router.post('/', (req, res, next) => {
   passport.authenticate('local', async (err, user, info) => {
     if (err) {
-      logger({ level: 5, message: `사용자 로그인 오류 ${JSON.stringify(err)}` })
+      loggerArr(5, 'Server', `사용자 로그인 오류 ${err}`)
       return res.status(500).json({ status: false, error: err })
     }
     if (!user) {
@@ -57,18 +56,15 @@ router.post('/', (req, res, next) => {
 
     req.login(user, async (err) => {
       if (err) {
-        logger({
-          level: 5,
-          message: `사용자 로그인 오류 ${JSON.stringify(err)}`
-        })
+        loggerArr(5, 'Server', `사용자 로그인 오류 ${err}`)
         return res.status(401).json({ status: false, error: err })
       }
-      const nUser = await User.updateOne(
+      await User.updateOne(
         { email: user.email },
         { $set: { loginAt: new Date(), numberOfLogin: user.numberOfLogin + 1 } }
       )
-      logger({ level: 3, message: `사용자 로그인 ${user.email}` })
-      res.status(200).json({ status: true })
+      loggerArr(3, user, `사용자 로그인 ${user.email}`)
+      return res.status(200).json({ status: true })
     })
   })(req, res, next)
 })
@@ -76,47 +72,47 @@ router.post('/', (req, res, next) => {
 router.get('/logout', async (req, res) => {
   try {
     const id = req.user._id
-    logger({ level: 3, message: `사용자 로그아웃 ${req.user.email}` })
+    loggerArr(3, req.user, '사용자 로그아웃')
     req.logout()
-    res.status(200).json({ user: null, message: 'logout completed' })
+    return res.status(200).json({ user: null, message: 'logout completed' })
   } catch (err) {
-    logger({ level: 5, message: `사용자 로그아웃 오류 ${JSON.stringify(err)}` })
-    res.status(500).json({ user: null, message: 'logout failed', error: error })
+    loggerArr(5, 'Server', `사용자 로그아웃 오류 ${err}`)
+    return res
+      .status(500)
+      .json({ user: null, message: 'logout failed', error: error })
   }
 })
 
 router.get('/users', async (req, res) => {
   try {
-    const r = await User.find({}, { password: 0 })
-    res.json({ users: r })
+    res.json({ users: await User.find({}, { password: 0 }) })
   } catch (err) {
-    logger({ level: 5, message: `사용자 정보확인 오류 ${JSON.stringify(err)}` })
-    res.status(500).json({ error: err })
+    loggerArr(5, 'Server', `사용자 정보확인 오류 ${err}`)
+    return res.status(500).json({ error: err })
   }
 })
 
 router.get('/setadmin', async (req, res) => {
   try {
-    const r = await User.findByIdAndUpdate(req.query.id, {
+    await User.findByIdAndUpdate(req.query.id, {
       $set: { admin: req.query.admin === 'true' }
     })
     res.sendStatus(200)
   } catch (err) {
-    logger({ level: 5, message: `사용자 권한변경 오류 ${JSON.stringify(err)}` })
-    res.status(500).json({ error: err })
+    loggerArr(5, 'Server', `사용자 권한변경 오류 ${err}`)
+    return res.status(500).json({ error: err })
   }
 })
 
 router.get('/deleteuser', async (req, res) => {
   try {
-    console.log(req.query)
     await User.deleteOne({ _id: req.query.id })
-    logger({ level: 3, id: req.user.email, message: `사용자 삭제 Name: ${req.query.id}`})
+    loggerArr(3, req.user, `사용자 삭제 Name: ${req.query.id}`)
     req.logout()
-    res.sendStatus(200)
+    return res.sendStatus(200)
   } catch (err) {
-    logger({ level: 5, message: `사용자 삭제 오류 ${JSON.stringify(err)}` })
-    res.status(500).json({ error: err })
+    loggerArr(5, req.user, `사용자 삭제 오류 ${err}`)
+    return res.status(500).json({ error: err })
   }
 })
 

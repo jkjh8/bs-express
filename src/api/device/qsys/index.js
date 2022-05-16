@@ -1,6 +1,6 @@
 const { Worker } = require('worker_threads')
 const { client } = require('db/redis')
-const { logger, loggerArr } = require('api/logger')
+const { loggerArr } = require('api/logger')
 const Devices = require('db/models/devices')
 const Zones = require('db/models/zones')
 

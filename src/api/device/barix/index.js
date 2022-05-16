@@ -1,6 +1,6 @@
 const { Worker } = require('worker_threads')
 const { client } = require('db/redis')
-const { logger } = require('api/logger')
+const { loggerArr } = require('api/logger')
 
 function getBarixInfo(workerData) {
   const worker = new Worker('./src/api/device/barix/barixWorker.js', {
@@ -17,23 +17,20 @@ function getBarixInfo(workerData) {
       await client.HSET('status', workerData, true)
     } else {
       await client.HSET('status', workerData, false)
-      logger({ level: 5, message: `${comm.data}` })
+      loggerArr(5, 'Server', comm.data)
     }
     worker.terminate()
   })
 
   worker.on('error', async (err) => {
     await client.HSET('status', workerData, false)
-    logger({
-      level: 5,
-      message: `Barix ${workerData} ${err}`
-    })
+    loggerArr(5, 'Server', `Barix ${workerData} Error ${err}`)
     worker.terminate()
   })
 
   worker.on('exit', (code) => {
     if (!code === 1) {
-      logger({ level: 4, message: `Barix ${workerData} Exit code: ${code}` })
+      loggerArr(4, 'Server', `Barix ${workerData} Exit ${code}`)
     }
   })
 }
