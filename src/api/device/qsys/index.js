@@ -3,7 +3,6 @@ const { client } = require('db/redis')
 const { loggerArr } = require('api/logger')
 const Devices = require('db/models/devices')
 const Zones = require('db/models/zones')
-const { resolve } = require('path')
 
 const workerPool = {}
 
@@ -86,18 +85,51 @@ module.exports.qsysGetStatus = (device) => {
 }
 
 module.exports.qsysSetTx = async (zone) => {
-  const { core, children } = zone
-  console.log(core, children, children.length)
-  return new Promise((resolve, reject) => {
+  const { core, children, channels } = zone
+  // console.log(core, children, children.length, channels)
+  return new Promise(async (resolve, reject) => {
     // if (!workerPool[core.ipaddress]) {
     //   reject('Core Not Connected')
     // }
-    for (let i = 0; i < children.length; i++) {
-      console.log(children[i])
+    let channel = channels
+    let deviceChannel = 32
+    if (core.model === '110f') {
+      deviceChannel = 4
+    }
+
+    if (channels > deviceChannel) {
+      channel = deviceChannel
+    }
+
+    for (let i = 0; i < channel; i++) {
+      // console.log(children[i])
       if (typeof children[i] === 'string') {
-        console.log('string ', children[i])
-      } else if (typeof children[i] === 'boolean') {
-        console.log('Boolean', children[i])
+        const target = await Devices.findOne({ _id: children[i] })
+        console.log(i, target)
+        this.sendMsgToQSys(core, {
+          id: `TX${i + 1}`,
+          method: 'Component.Set',
+          params: {
+            Name: `TX${i + 1}`,
+            Controls: [
+              { Name: 'host', Value: target.ipaddress },
+              { Name: 'port', Value: target.port },
+              { Name: 'enable', Value: true }
+            ]
+          }
+        })
+      }
+
+      if (children[i] === null) {
+        console.log(i, null)
+        this.sendMsgToQSys(core, {
+          id: `TX${i + 1}`,
+          method: 'Component.Set',
+          params: {
+            Name: `TX${i + 1}`,
+            Controls: [{ Name: 'enable', Value: false }]
+          }
+        })
       }
     }
     resolve()
