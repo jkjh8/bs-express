@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const { loggerArr } = require('api/logger')
 const Zones = require('db/models/zones')
+const { qsysSetTx } = require('api/device/qsys')
 
 router.get('/exists', async (req, res) => {
   try {
@@ -71,10 +72,13 @@ router.put('/', async (req, res) => {
 
 router.put('/addchildrens', async (req, res) => {
   try {
+    await qsysSetTx(req.body)
     loggerArr(
       0,
       req.user,
-      `방송구간 ${req.body.core.ipaddress} 채널이 변경되었습니다. ${req.body.children}`
+      `방송구간 ${
+        req.body.core.ipaddress
+      } 채널이 변경되었습니다. ${req.body.children.map((e) => e ?? 'None')}`
     )
     return res.json({
       result: await Zones.updateOne(

@@ -5,7 +5,6 @@ module.exports = class Qrc extends EventEmitter {
   constructor(ipaddress) {
     super()
     this.client = net.Socket()
-    this.client.setTimeout(5000)
     this._ipaddress = ipaddress
     this.connected = false
     this._data = Buffer.alloc(0)

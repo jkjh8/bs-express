@@ -3,6 +3,7 @@ const { client } = require('db/redis')
 const { loggerArr } = require('api/logger')
 const Devices = require('db/models/devices')
 const Zones = require('db/models/zones')
+const { resolve } = require('path')
 
 const workerPool = {}
 
@@ -84,20 +85,23 @@ module.exports.qsysGetStatus = (device) => {
   })
 }
 
-module.exports.qsysSetTx = async (zoneId) => {
-  const zone = Zones.find({})
-    .populate('core')
-    .populate({ path: 'children', options: { retainNullValues: true } })
-
+module.exports.qsysSetTx = async (zone) => {
   const { core, children } = zone
-
-  if (!workerPool[core.ipaddress]) {
-    runQsysThread(core.ipaddress)
-  }
-
-  for (let i = 0; i < children.length; i++) {
-    console.log(children[i])
-  }
+  console.log(core, children, children.length)
+  return new Promise((resolve, reject) => {
+    // if (!workerPool[core.ipaddress]) {
+    //   reject('Core Not Connected')
+    // }
+    for (let i = 0; i < children.length; i++) {
+      console.log(children[i])
+      if (typeof children[i] === 'string') {
+        console.log('string ', children[i])
+      } else if (typeof children[i] === 'boolean') {
+        console.log('Boolean', children[i])
+      }
+    }
+    resolve()
+  })
 }
 
 module.exports.qsysGetPa = (device) => {
