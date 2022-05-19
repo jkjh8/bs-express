@@ -1,5 +1,5 @@
 const { Worker } = require('worker_threads')
-const { client } = require('db/redis')
+const redis = require('db/redis')
 const { loggerArr } = require('api/logger')
 const Devices = require('db/models/devices')
 const Zones = require('db/models/zones')
@@ -25,16 +25,16 @@ function runQsysThread(workerData) {
         workerPool[workerData] = null
         break
     }
-    await client.HSET('status', workerData, true)
+    await redis.HSET('status', workerData, true)
   })
   worker.on('error', async (err) => {
     workerPool[workerData] = null
-    await client.HSET('status', workerData, false)
+    await redis.HSET('status', workerData, false)
     loggerArr(5, 'Server', `Q-Sys ${workerData} Error ${err}`)
   })
   worker.on('exit', async (code) => {
     workerPool[workerData] = null
-    await client.HSET('status', workerData, false)
+    await redis.HSET('status', workerData, false)
     loggerArr(4, 'Server', `Q-Sys ${workerData} Exit ${code}`)
   })
 }
@@ -48,14 +48,14 @@ async function dataToQrc(comm) {
   // }
   switch (comm.id) {
     case 'GetPa':
-      client.HSET(
+      redis.HSET(
         'pa',
         comm.ipaddress,
         JSON.stringify({ deviceType: 'Q-Sys', ...comm.result })
       )
       break
     case 'GetStatus':
-      client.set(
+      redis.set(
         `status:${comm.ipaddress}`,
         JSON.stringify({ deviceType: 'Q-Sys', ...comm.result }),
         {
@@ -63,6 +63,15 @@ async function dataToQrc(comm) {
         }
       )
       break
+    default:
+      if (comm.error) {
+        loggerArr(
+          5,
+          'Server',
+          `Q-Sys ${comm.ipaddress} Error: ${comm.error.code}, ${comm.error.message}`
+        )
+      }
+      console.log('default to Qrc ', comm)
   }
 }
 
@@ -86,53 +95,65 @@ module.exports.qsysGetStatus = (device) => {
 
 module.exports.qsysSetTx = async (zone) => {
   const { core, children, channels } = zone
-  // console.log(core, children, children.length, channels)
   return new Promise(async (resolve, reject) => {
     // if (!workerPool[core.ipaddress]) {
     //   reject('Core Not Connected')
     // }
-    let channel = channels
+    const returnIpaddress = []
     let deviceChannel = 32
     if (core.model === '110f') {
       deviceChannel = 4
     }
 
-    if (channels > deviceChannel) {
-      channel = deviceChannel
-    }
+    console.log('device channel ', deviceChannel, children)
 
-    for (let i = 0; i < channel; i++) {
-      // console.log(children[i])
+    for (let i = 0; i < channels; i++) {
       if (typeof children[i] === 'string') {
         const target = await Devices.findOne({ _id: children[i] })
-        console.log(i, target)
-        this.sendMsgToQSys(core, {
-          id: `TX${i + 1}`,
-          method: 'Component.Set',
-          params: {
-            Name: `TX${i + 1}`,
-            Controls: [
-              { Name: 'host', Value: target.ipaddress },
-              { Name: 'port', Value: target.port },
-              { Name: 'enable', Value: true }
-            ]
-          }
-        })
+        returnIpaddress.push(
+          `${i}: ${children[i].name} ${children[i].ipaddress}`
+        )
+        if (target.mode !== 'Local' && i < deviceChannel) {
+          this.sendMsgToQSys(core, {
+            id: `MS-TX-${i + 1}`,
+            method: 'Component.Set',
+            params: {
+              Name: `MS-TX-${i + 1}`,
+              Controls: [
+                { Name: 'host', Value: target.ipaddress },
+                { Name: 'port', Value: target.port },
+                { Name: 'enable', Value: true }
+              ]
+            }
+          })
+        }
+      }
+
+      if (children[i] !== null && typeof children[i] === 'object') {
+        if (children[i].mode && children[i].mode === 'Local') {
+          returnIpaddress.push(`${i}: ${children[i].name}`)
+        } else {
+          returnIpaddress.push(
+            `${i}: ${children[i].name} ${children[i].ipaddress}`
+          )
+        }
       }
 
       if (children[i] === null) {
-        console.log(i, null)
-        this.sendMsgToQSys(core, {
-          id: `TX${i + 1}`,
-          method: 'Component.Set',
-          params: {
-            Name: `TX${i + 1}`,
-            Controls: [{ Name: 'enable', Value: false }]
-          }
-        })
+        returnIpaddress.push(`${i}: None`)
+        if (i < deviceChannel) {
+          this.sendMsgToQSys(core, {
+            id: `MS-TX-${i + 1}`,
+            method: 'Component.Set',
+            params: {
+              Name: `MS-TX-${i + 1}`,
+              Controls: [{ Name: 'enable', Value: false }]
+            }
+          })
+        }
       }
     }
-    resolve()
+    resolve(returnIpaddress)
   })
 }
 

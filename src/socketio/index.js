@@ -1,12 +1,14 @@
-const { logger } = require('api/logger')
+const { loggerArr } = require('api/logger')
 
 module.exports = (app) => {
   app.io.on('connect', (socket) => {
     // console.log(socket.request.headers)
-    logger({ level: 3, message: `Socket IO connected, ${socket.id}` })
+    // logger({ level: 3, message: `Socket IO connected, ${socket.id}` })
+    loggerArr(3, 'Server', `Socket IO connected, ${socket.id}`)
 
     socket.on('disconnect', () => {
-      logger({ level: 4, message: `Socket IO disconnect, ${socket.id}` })
+      loggerArr(4, 'Server', `Socket IO disconnected, ${socket.id}`)
+      // logger({ level: 4, message: `Socket IO disconnect, ${socket.id}` })
     })
 
     socket.on('devicesConnect', () => {
@@ -30,5 +32,5 @@ module.exports = (app) => {
     console.log(`socket ${id} has leave room ${room}`)
   })
 
-  logger({ level: 3, message: `Socket IO Listening` })
+  loggerArr(3, 'Server', `Socket IO Listening`)
 }

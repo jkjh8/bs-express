@@ -30,4 +30,18 @@ router.get('/', async (req, res) => {
   }
 })
 
+router.get('/deleteall', async (req, res) => {
+  try {
+    if (req.user && req.user.admin) {
+      await EventLog.deleteMany({})
+      loggerArr(4, req.user, '전체 로그 메시지를 삭제 하였습니다.')
+      return res.send('OK')
+    }
+    loggerArr(5, req.user, '전체 로그 메시지 삭제 권한이 없습니다.')
+    return res.status(403)
+  } catch (err) {
+    loggerArr(5, req.user, '전체 로그 메시지 삭제 에러 입니다.')
+    return res.status(500).json({ error: err })
+  }
+})
 module.exports = router

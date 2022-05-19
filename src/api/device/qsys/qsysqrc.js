@@ -28,6 +28,7 @@ module.exports = class Qrc extends EventEmitter {
     })
 
     this.client.on('error', (err) => {
+      console.log(err)
       this.connected = false
       this.emit('error', err)
     })

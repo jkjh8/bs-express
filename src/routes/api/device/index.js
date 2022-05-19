@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const { loggerArr } = require('api/logger')
-const { client } = require('db/redis')
+const redis = require('db/redis')
 const Devices = require('db/models/devices')
 // const fnDevice = require('api/device')
 const { getDevices, getDevice } = require('api/device')
@@ -71,7 +71,7 @@ router.get('/ipexists', async (req, res) => {
 
 router.get('/status', async (req, res) => {
   try {
-    return res.json(await client.HGETALL('status'))
+    return res.json(await redis.HGETALL('status'))
   } catch (err) {
     loggerArr(5, req.user, `디바이스 상태 수집 오류 ${err}`)
     return res.status(500).json({ error: err })
@@ -80,7 +80,7 @@ router.get('/status', async (req, res) => {
 
 router.get('/pa', async (req, res) => {
   try {
-    return res.json(await client.HGETALL('pa'))
+    return res.json(await redis.HGETALL('pa'))
   } catch (err) {
     loggerArr(5, req.user, `디바이스 PA 모듈 수집 오류 ${err}`)
     return res.status(500).json({ error: err })
@@ -104,7 +104,7 @@ router.get('/delete', async (req, res) => {
 router.get('/getstatusinfo', async (req, res) => {
   try {
     return res.json(
-      JSON.parse(await client.get(`status:${req.query.ipaddress}`))
+      JSON.parse(await redis.get(`status:${req.query.ipaddress}`))
     )
   } catch (err) {
     loggerArr(5, req.user, `디바이스 정보 호출 오류 ${err}`)

@@ -58,10 +58,14 @@ function cliLog(logs) {
 }
 
 module.exports.loggerArr = async (level, user, msg) => {
+  let ID = user ?? ''
+  if (typeof user === 'object') {
+    ID = user.email
+  }
   const logMessage = new Log({
     priority: levels[level],
     level: level,
-    user: user && user.email ? user.email : '',
+    id: ID,
     message: msg
   })
   await logMessage.save()

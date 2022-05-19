@@ -56,13 +56,32 @@ router.post('/', async (req, res) => {
 
 router.put('/', async (req, res) => {
   try {
+    const { name, core, channels, children } = req.body
+    let newChildren = children
+    let targetAddress = []
+    if (channels < children.length) {
+      console.log('process', channels, children.length)
+      newChildren = children.slice(0, channels)
+      targetAddresses = await qsysSetTx({
+        name,
+        core,
+        channels,
+        children: newChildren
+      })
+    }
+
     loggerArr(
       0,
       req.user,
-      `방송구간 수정 Name: ${req.body.name} Core: ${req.body.core.ipaddress}`
+      `방송구간 수정 Name: ${req.body.name} Core: ${
+        req.body.core.ipaddress
+      } 채널: ${targetAddresses.join(',')}`
     )
     return res.json({
-      result: await Zones.findOneAndUpdate({ _id: req.body._id }, req.body)
+      result: await Zones.findOneAndUpdate(
+        { _id: req.body._id },
+        { ...req.body, children: newChildren }
+      )
     })
   } catch (err) {
     loggerArr(5, req.user, `방송구간 수정 오류 ${err}`)
@@ -72,13 +91,13 @@ router.put('/', async (req, res) => {
 
 router.put('/addchildrens', async (req, res) => {
   try {
-    await qsysSetTx(req.body)
+    const targetAddresses = await qsysSetTx(req.body)
     loggerArr(
       0,
       req.user,
       `방송구간 ${
         req.body.core.ipaddress
-      } 채널이 변경되었습니다. ${req.body.children.map((e) => e ?? 'None')}`
+      } 채널이 변경되었습니다. ${targetAddresses.join(',')}`
     )
     return res.json({
       result: await Zones.updateOne(
