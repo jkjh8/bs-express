@@ -20,8 +20,8 @@ const mongoose = require('db/mongodb')
 
 // init app
 const app = express()
-app.io = new Server()
-require('./socketio')(app)
+global.io = new Server()
+require('./socketio')(io)
 
 // cors
 app.use(
@@ -44,8 +44,7 @@ const sessionOptions = session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    httpOnly: true,
-    expires: new Date(Date.now() + 3600000)
+    httpOnly: true
   },
   store: MongoStore.create({
     mongoUrl: `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@mongodb:27017/bs`
@@ -61,10 +60,13 @@ app.use(passport.session())
 const wrap = (middleware) => (socket, next) =>
   middleware(socket.request, {}, next)
 
-app.io.use(wrap(sessionOptions))
-app.io.use(wrap(passport.initialize()))
-app.io.use(wrap(passport.session()))
-app.io.use((socket, next) => {
+io.use(wrap(sessionOptions))
+io.use(wrap(passport.initialize()))
+io.use(wrap(passport.session()))
+io.use((socket, next) => {
+  if (socket.handshake.query.type === 'device') {
+    return next()
+  }
   if (socket.request.user) {
     next()
   } else {
@@ -83,5 +85,4 @@ app.use('/api', require('./routes/api'))
 const { startTimeline } = require('./api/device')
 startTimeline()
 
-global.app = app
 module.exports = app

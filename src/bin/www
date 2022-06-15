@@ -22,7 +22,7 @@ app.set('port', port)
 const server = http.createServer(app)
 
 // socket io attach
-app.io.attach(server, {
+io.attach(server, {
   origin: function (origin, callback) {
     callback(null, origin)
   },
