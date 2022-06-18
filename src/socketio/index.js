@@ -2,13 +2,28 @@ const { loggerArr } = require('api/logger')
 
 module.exports = () => {
   io.on('connect', (socket) => {
-    // console.log(socket.request.headers)
-    // logger({ level: 3, message: `Socket IO connected, ${socket.id}` })
-    loggerArr(3, 'Server', `Socket IO connected, ${socket.id}`)
+    if (socket.handshake.query.type) {
+      switch (socket.handshake.query.type) {
+        case 'device':
+          socket.join('devices')
+          loggerArr(
+            3,
+            'Server',
+            `Socket IO connected mode Devices, ${socket.id}`
+          )
+          break
+        case 'client':
+          socket.join('clients')
+          loggerArr(
+            3,
+            'Server',
+            `Socket IO connected mode Clients, ${socket.id}`
+          )
+      }
+    }
 
     socket.on('disconnect', () => {
       loggerArr(4, 'Server', `Socket IO disconnected, ${socket.id}`)
-      // logger({ level: 4, message: `Socket IO disconnect, ${socket.id}` })
     })
 
     socket.on('devicesConnect', () => {
