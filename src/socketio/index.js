@@ -38,6 +38,10 @@ module.exports = () => {
     socket.on('devicesDisconnect', () => {
       socket.leave('devices')
     })
+
+    socket.on('PA', (args) => {
+      io.of('clients').emit('PA', args)
+    })
   })
 
   io.of('/').adapter.on('create-room', (room) => {
