@@ -3,9 +3,14 @@ const router = express.Router()
 const { loggerArr } = require('api/logger')
 const Zones = require('db/models/zones')
 const { qsysSetTx } = require('api/device/qsys')
+const { query } = require('express')
 
 router.get('/exists', async (req, res) => {
   try {
+    if (req.query.id) {
+      return res.json(await Zones.findOne({ core: req.query.id }))
+    }
+    console.log(req.query)
     return res.json({ result: await Zones.exists({ index: req.query.index }) })
   } catch (err) {
     loggerArr(5, req.user, `방송구간 인덱스 검증 오류 ${err}`)
@@ -41,51 +46,33 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    await Zones({ ...req.body }).save()
+    const { zone, update } = req.body
+    const r = await Zones({ ...update }).save()
     loggerArr(
       0,
       req.user,
-      `방송구간 추가 Name: ${req.body.name} Core: ${req.body.core.ipaddress}`
+      `방송구간추가 Name: ${zone.name} Core: ${zone.core.ipaddress} Child: ${zone.children}`
     )
-    res.json({ result: 'OK' })
+    res.status(200).json(r)
   } catch (err) {
-    loggerArr(5, req.user, `방송구간 추가 오류 ${err}`)
+    loggerArr(5, req.user, `방송구간추가 오류 ${err}`)
     return res.status(500).json({ error: err })
   }
 })
 
 router.put('/', async (req, res) => {
   try {
-    const { name, core, channels, children } = req.body
-    let newChildren = children
-    let targetAddress = []
-    if (channels < children.length) {
-      console.log('process', channels, children.length)
-      newChildren = children.slice(0, channels)
-      targetAddresses = await qsysSetTx({
-        name,
-        core,
-        channels,
-        children: newChildren
-      })
-    }
-
+    const { zone, update } = req.body
+    const r = await Zones.updateOne({ _id: update._id }, { $set: update })
     loggerArr(
       0,
       req.user,
-      `방송구간 수정 Name: ${req.body.name} Core: ${
-        req.body.core.ipaddress
-      } 채널: ${targetAddresses.join(',')}`
+      `방송구간수정 Name: ${zone.name} Core: ${zone.core.ipaddress} Child: ${zone.children}`
     )
-    return res.json({
-      result: await Zones.findOneAndUpdate(
-        { _id: req.body._id },
-        { ...req.body, children: newChildren }
-      )
-    })
+    return res.status(200).json(r)
   } catch (err) {
-    loggerArr(5, req.user, `방송구간 수정 오류 ${err}`)
-    return res.status(500).json({ error: err })
+    loggerArr(5, req.user ?? '', `방송구간수정 오류 ${err}`)
+    return res.status(500).json(err)
   }
 })
 

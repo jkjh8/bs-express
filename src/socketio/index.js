@@ -1,8 +1,7 @@
 const { loggerArr } = require('api/logger')
 const Devices = require('db/models/devices')
-const fnDevices = require('./devices')
 
-module.exports = () => {
+module.exports = (io) => {
   io.on('connect', (socket) => {
     if (socket.handshake.query.type) {
       switch (socket.handshake.query.type) {
@@ -13,9 +12,9 @@ module.exports = () => {
             'Server',
             `Socket IO connected mode Devices, ${socket.id}`
           )
-          socket.on('devices', async (command) => {
-            fnDevices(socket, command)
-          })
+          // socket.on('devices', async (command) => {
+          //   fnDevices(socket, command)
+          // })
           break
         case 'client':
           socket.join('clients')
@@ -31,30 +30,18 @@ module.exports = () => {
       loggerArr(4, 'Server', `Socket IO disconnected, ${socket.id}`)
     })
 
-    socket.on('devicesConnect', () => {
-      socket.join('devices')
-    })
-
-    socket.on('devicesDisconnect', () => {
-      socket.leave('devices')
-    })
-
     socket.on('PA', (args) => {
       io.of('clients').emit('PA', args)
     })
   })
 
-  io.of('/').adapter.on('create-room', (room) => {
-    console.log(`room ${room} was created`)
-  })
-
-  io.of('/').adapter.on('join-room', (room, id) => {
-    console.log(`socket ${id} has joined room ${room}`)
-  })
-
-  io.of('/').adapter.on('leave-room', (room, id) => {
-    console.log(`socket ${id} has leave room ${room}`)
-  })
-
   loggerArr(3, 'Server', `Socket IO Listening`)
+}
+
+module.exports.sendSocketDevices = (namespace, args) => {
+  io.of('devices').emit(namespace, args)
+}
+
+module.exports.sendSocketClients = (namespace, args) => {
+  io.of('clients').emit(namespace, args)
 }
