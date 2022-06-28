@@ -1,4 +1,6 @@
 const { loggerArr } = require('api/logger')
+const Devices = require('db/models/devices')
+const fnDevices = require('./devices')
 
 module.exports = () => {
   io.on('connect', (socket) => {
@@ -11,6 +13,9 @@ module.exports = () => {
             'Server',
             `Socket IO connected mode Devices, ${socket.id}`
           )
+          socket.on('devices', async (command) => {
+            fnDevices(socket, command)
+          })
           break
         case 'client':
           socket.join('clients')
