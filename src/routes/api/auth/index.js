@@ -85,7 +85,11 @@ router.get('/logout', async (req, res) => {
 
 router.get('/users', async (req, res) => {
   try {
-    res.json({ users: await User.find({}, { password: 0 }) })
+    if (req.user && req.user.admin) {
+      res.json({ users: await User.find({}, { password: 0 }) })
+    } else {
+      res.sendStatus(403)
+    }
   } catch (err) {
     loggerArr(5, 'Server', `사용자 정보확인 오류 ${err}`)
     return res.status(500).json({ error: err })
