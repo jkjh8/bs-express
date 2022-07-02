@@ -13,14 +13,9 @@ router.get('/', (req, res, next) => {
   }
 })
 
-router.get('/checkEmail', async (req, res) => {
+router.get('/checkemail', async (req, res) => {
   try {
-    const r = await User.findOne({ email: req.query.email })
-    if (r) {
-      return res.status(200).json({ user: r, status: true })
-    } else {
-      return res.status(200).json({ user: null, status: false })
-    }
+    return res.status(200).json(await User.exists({ email: req.query.email }))
   } catch (err) {
     loggerArr(5, 'Server', err)
     return res.status(500).json({ error: err, status: false })
@@ -79,17 +74,15 @@ router.get('/logout', async (req, res) => {
     loggerArr(5, 'Server', `사용자 로그아웃 오류 ${err}`)
     return res
       .status(500)
-      .json({ user: null, message: 'logout failed', error: error })
+      .json({ user: null, message: 'logout failed', error: err })
   }
 })
 
 router.get('/users', async (req, res) => {
   try {
-    if (req.user && req.user.admin) {
-      res.json({ users: await User.find({}, { password: 0 }) })
-    } else {
-      res.sendStatus(403)
-    }
+    if (!req.user) return res.sendStatus(403)
+    if (!req.user.admin) return res.sendStatus(403)
+    res.json({ users: await User.find({}, { password: 0 }) })
   } catch (err) {
     loggerArr(5, 'Server', `사용자 정보확인 오류 ${err}`)
     return res.status(500).json({ error: err })
@@ -98,6 +91,8 @@ router.get('/users', async (req, res) => {
 
 router.get('/setadmin', async (req, res) => {
   try {
+    if (!req.user) return res.sendStatus(403)
+    if (!req.user.admin) return res.sendStatus(403)
     await User.findByIdAndUpdate(req.query.id, {
       $set: { admin: req.query.admin === 'true' }
     })
@@ -110,9 +105,19 @@ router.get('/setadmin', async (req, res) => {
 
 router.get('/deleteuser', async (req, res) => {
   try {
-    await User.deleteOne({ _id: req.query.id })
-    loggerArr(3, req.user, `사용자 삭제 Name: ${req.query.id}`)
-    req.logout()
+    // 권한 확인
+    const { user } = req
+    const { email } = req.query
+    if (!user.admin || user.email !== email) return res.sendStatus(403)
+
+    // delete
+    await User.deleteOne({ email: email })
+    loggerArr(3, user.email, `사용자 삭제 Name: ${email}`)
+
+    // 로그아웃
+    if (user.email === email) {
+      req.logout()
+    }
     return res.sendStatus(200)
   } catch (err) {
     loggerArr(5, req.user, `사용자 삭제 오류 ${err}`)
