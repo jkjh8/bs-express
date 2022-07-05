@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     await new Devices({ ...req.body }).save()
-    await getDevice(req.body)
+    // await getDevice(req.body)
     loggerArr(
       0,
       req.user,
@@ -34,7 +34,7 @@ router.post('/', async (req, res) => {
 router.put('/', async (req, res) => {
   try {
     await Devices.findOneAndUpdate({ _id: req.body._id }, req.body)
-    await getDevice(req.body)
+    // await getDevice(req.body)
     loggerArr(
       0,
       req.user,
@@ -89,12 +89,15 @@ router.get('/pa', async (req, res) => {
 
 router.get('/delete', async (req, res) => {
   try {
+    const item = JSON.parse(req.query.item)
+    await Devices.deleteOne({ _id: item._id })
+
     loggerArr(
       0,
       req.user,
-      `디바이스 삭제 Name: ${req.query.name} IPaddress: ${req.query.ipaddress}`
+      `디바이스 삭제 Name: ${item.name} IPaddress: ${item.ipaddress}`
     )
-    return res.json(await Devices.deleteOne({ _id: req.query.id }))
+    return res.sendStatus(200)
   } catch (err) {
     loggerArr(2, req.user, `디바이스 삭제 오류 ${err}`)
     return res.status(500).json({ error: err })

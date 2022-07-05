@@ -7,11 +7,11 @@ mongoose
     { useNewUrlParser: true }
   )
   .then(() => {
-    loggerArr(3, 'Server', 'Mongodb Connected')
-    // logger({ level: 3, message: 'Mongodb Connected' })
+    // console.log('Mongodb Connected')
+    logger({ level: 3, message: 'Mongodb Connected' })
   })
   .catch((e) => {
-    loggerArr(5, 'Server', `Mongodb Connect Error ${e}`)
+    console.error(`Mongodb Connect Error ${e}`)
   })
 
 module.exports = mongoose.connection

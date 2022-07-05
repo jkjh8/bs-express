@@ -11,7 +11,11 @@ async function connectRedis() {
     loggerArr(5, 'Server', `Redis Client Error, ${JSON.stringify(err)}`)
   )
   await client.connect()
-  loggerArr(3, 'Server', 'Redis Clients Connected')
+  try {
+    loggerArr(3, 'Server', 'Redis Clients Connected')
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 connectRedis()

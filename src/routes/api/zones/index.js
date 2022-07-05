@@ -3,33 +3,6 @@ const router = express.Router()
 const { loggerArr } = require('api/logger')
 const Zones = require('db/models/zones')
 const { qsysSetTx } = require('api/device/qsys')
-const { query } = require('express')
-
-router.get('/exists', async (req, res) => {
-  try {
-    if (req.query.id) {
-      return res.json(await Zones.findOne({ core: req.query.id }))
-    }
-    console.log(req.query)
-    return res.json({ result: await Zones.exists({ index: req.query.index }) })
-  } catch (err) {
-    loggerArr(5, req.user, `방송구간 인덱스 검증 오류 ${err}`)
-    return res.status(500).json({ error: err })
-  }
-})
-
-router.get('/existsChildren', async (req, res) => {
-  try {
-    return res.json({
-      result: await Zones.find({
-        children: { $elemMatch: { $eq: req.query.id } }
-      })
-    })
-  } catch (err) {
-    loggerArr(5, req.user, `방송구간 중복 확인 오류 ${err}`)
-    return res.status(500).json({ error: err })
-  }
-})
 
 router.get('/', async (req, res) => {
   try {
@@ -44,14 +17,47 @@ router.get('/', async (req, res) => {
   }
 })
 
+router.get('/exists', async (req, res) => {
+  try {
+    return res.json({ result: await Zones.exists({ index: req.query.index }) })
+  } catch (err) {
+    loggerArr(5, req.user, `방송구간 인덱스 검증 오류 ${err}`)
+    return res.status(500).json({ error: err })
+  }
+})
+
+router.get('/existCore', async (req, res) => {
+  try {
+    const item = JSON.parse(req.query.json)
+    return res.json(await Zones.find({ core: item._id }))
+  } catch (err) {
+    loggerArr(5, req.user, `방송구간 인덱스 검증 오류 ${err}`)
+    return res.status(500).json({ error: err })
+  }
+})
+
+router.get('/existChildren', async (req, res) => {
+  try {
+    return res.json({
+      result: await Zones.find({
+        children: { $elemMatch: { $eq: req.query.id } }
+      })
+    })
+  } catch (err) {
+    loggerArr(5, req.user, `방송구간 중복 확인 오류 ${err}`)
+    return res.status(500).json({ error: err })
+  }
+})
+
 router.post('/', async (req, res) => {
   try {
-    const { zone, update } = req.body
-    const r = await Zones({ ...update }).save()
+    const item = req.body
+    console.log(item)
+    const r = await Zones({ ...item }).save()
     loggerArr(
       0,
       req.user,
-      `방송구간추가 Name: ${zone.name} Core: ${zone.core.ipaddress} Child: ${zone.children}`
+      `방송구간추가 ${item.name} ${item.core.name}:${item.core.ipaddress}`
     )
     res.status(200).json(r)
   } catch (err) {
@@ -62,12 +68,24 @@ router.post('/', async (req, res) => {
 
 router.put('/', async (req, res) => {
   try {
-    const { zone, update } = req.body
-    const r = await Zones.updateOne({ _id: update._id }, { $set: update })
+    const item = req.body
+    const r = await Zones.updateOne({ _id: item._id }, { $set: item })
+
+    const children = []
+    for (let i = 0; i < item.children.length; i++) {
+      if (item.children[i]) {
+        children.push(`${i + 1}:${item.children[i].name}`)
+      } else {
+        children.push(`${i + 1}: Null`)
+      }
+    }
+
     loggerArr(
       0,
       req.user,
-      `방송구간수정 Name: ${zone.name} Core: ${zone.core.ipaddress} Child: ${zone.children}`
+      `방송구간수정 ${item.name} ${item.core.name}: ${
+        item.core.ipaddress
+      } ${children.join(',')}`
     )
     return res.status(200).json(r)
   } catch (err) {
@@ -100,8 +118,10 @@ router.put('/addchildrens', async (req, res) => {
 
 router.get('/delete', async (req, res) => {
   try {
-    loggerArr(0, req.user, `방송구간 삭제 Name: ${req.query.name}`)
-    res.json({ result: await Zones.deleteOne({ _id: req.query.id }) })
+    const item = JSON.parse(req.query.item)
+    await Zones.deleteOne({ _id: item._id })
+    loggerArr(0, req.user, `방송구간 삭제 ${item.index}:${item.name}}`)
+    return res.sendStatus(200)
   } catch (err) {
     loggerArr(5, req.user, `방송구간 삭제 오류 ${err}`)
     return res.status(500).json({ error: err })
