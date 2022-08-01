@@ -13,6 +13,15 @@ router.get('/', (req, res, next) => {
   }
 })
 
+router.get('/checkEmailUsed', async(req, res) => {
+  try {
+    return res.status(200).json(await User.exists({ email: req.query.email }))
+  } catch (err) {
+    loggerArr(5, 'Server', err)
+    return res.status(500).json({ error: err, status: false })
+  }
+})
+
 router.get('/checkemail', async (req, res) => {
   try {
     return res.status(200).json(await User.exists({ email: req.query.email }))
@@ -26,16 +35,16 @@ router.post('/register', async (req, res) => {
   const { name, email, password } = req.body
   const r = await User.findOne({ email: email })
   if (r) {
-    return res.status(403).json({ message: '사용중인 이메일 입니다.' })
+    return res.status(403).send('사용중인 이메일 입니다.')
   }
   const user = new User({ name, email, password })
   try {
     await user.save()
     loggerArr(3, 'Server', `회원가입: ${email}`)
-    return res.status(200).json(user)
-  } catch (error) {
+    return res.status(200).send(null)
+  } catch (err) {
     loggerArr(5, 'Server', `회원가입 오류 ${err}`)
-    return res.status(500).json({ message: error.message })
+    return res.status(500).json(err)
   }
 })
 
@@ -108,17 +117,21 @@ router.get('/deleteuser', async (req, res) => {
     // 권한 확인
     const { user } = req
     const { email } = req.query
-    if (!user.admin || user.email !== email) return res.sendStatus(403)
 
-    // delete
-    await User.deleteOne({ email: email })
-    loggerArr(3, user.email, `사용자 삭제 Name: ${email}`)
-
-    // 로그아웃
-    if (user.email === email) {
-      req.logout()
+    if (user.admin || user.email === email) {
+      // delete
+      await User.deleteOne({ email: email })
+      loggerArr(3, user.email, `사용자 삭제 Name: ${email}`)
+  
+      // 로그아웃
+      if (user.email === email) {
+        req.logout()
+      }
+      return res.sendStatus(200)
     }
-    return res.sendStatus(200)
+    
+    return res.sendStatus(403)
+
   } catch (err) {
     loggerArr(5, req.user, `사용자 삭제 오류 ${err}`)
     return res.status(500).json({ error: err })
