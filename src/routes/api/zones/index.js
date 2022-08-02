@@ -17,19 +17,22 @@ router.get('/', async (req, res) => {
   }
 })
 
-router.get('/exists', async (req, res) => {
+router.get('/idxexists', async (req, res) => {
   try {
-    return res.json({ result: await Zones.exists({ index: req.query.index }) })
+    const { index, id } = req.query
+    return res.json({
+      result: await Zones.exists({ $and: [ { index: index }, { _id: { $ne: id } } ] })
+    })
   } catch (err) {
     loggerArr(5, req.user, `방송구간 인덱스 검증 오류 ${err}`)
     return res.status(500).json({ error: err })
   }
 })
 
-router.get('/existCore', async (req, res) => {
+router.get('/coreexists', async (req, res) => {
   try {
-    const item = JSON.parse(req.query.json)
-    return res.json(await Zones.find({ core: item._id }))
+    const { coreid, zoneid } = req.query
+    return res.json(await Zones.exists({ $and: [{ core: coreid }, { _id: { $ne: zoneid } }] }))
   } catch (err) {
     loggerArr(5, req.user, `방송구간 인덱스 검증 오류 ${err}`)
     return res.status(500).json({ error: err })

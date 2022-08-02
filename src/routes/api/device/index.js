@@ -22,7 +22,7 @@ router.post('/', async (req, res) => {
     loggerArr(
       0,
       req.user,
-      `디바이스 추가 Name: ${req.body.name} IPaddress: ${req.body.ipaddress}`
+      `디바이스 추가: ${JSON.stringify(req.body)}`
     )
     return res.json({ result: 'OK' })
   } catch (err) {
@@ -34,37 +34,38 @@ router.post('/', async (req, res) => {
 router.put('/', async (req, res) => {
   try {
     await Devices.findOneAndUpdate({ _id: req.body._id }, req.body)
-    // await getDevice(req.body)
     loggerArr(
       0,
       req.user,
-      `디바이스 수정 Name: ${req.body.name} IPaddress: ${req.body.ipaddress}`
+      `디바이스 수정: ${JSON.stringify(req.body)}`
     )
-    res.json({ result: 'OK' })
+    res.status(200).send("OK")
   } catch (err) {
     loggerArr(5, req.user, `디바이스 수정 오류 ${err}`)
     return res.status(500).json({ error: err })
   }
 })
 
-router.get('/exists', async (req, res) => {
+router.get('/idxexists', async (req, res) => {
   try {
+    const { index, id } = req.query
     return res.json({
-      result: await Devices.exists({ index: req.query.index })
+      result: await Devices.exists({ $and: [ { index: index }, { _id: { $ne: id } } ] })
     })
   } catch (err) {
-    loggerArr(5, req.user, `디바이스 검증 오류 ${err}`)
+    loggerArr(5, req.user, `디바이스 인덱스 중복 검증 오류 ${err}`)
     return res.status(500).json({ error: err })
   }
 })
 
 router.get('/ipexists', async (req, res) => {
   try {
+    const { ipaddress, id } = req.query
     return res.json({
-      result: await Devices.exists({ ipaddress: req.query.ipaddr })
+      result: await Devices.exists({ $and: [{ipaddress: ipaddress}, {_id: { $ne: id}}]})
     })
   } catch (err) {
-    loggerArr(5, req.user, `디바이스 IP 검증 오류 ${err}`)
+    loggerArr(5, req.user, `디바이스 IP 중복 검증 오류 ${err}`)
     return res.status(500).json({ error: err })
   }
 })
@@ -89,14 +90,11 @@ router.get('/pa', async (req, res) => {
 
 router.get('/delete', async (req, res) => {
   try {
-    const item = JSON.parse(req.query.item)
-    await Devices.deleteOne({ _id: item._id })
-
-    loggerArr(
-      0,
-      req.user,
-      `디바이스 삭제 Name: ${item.name} IPaddress: ${item.ipaddress}`
-    )
+    const {user} = req
+    const {item} = req.query
+    const obj = JSON.parse(item)
+    await Devices.deleteOne({ _id: obj._id })
+    loggerArr(0, user, `디바이스 삭제: ${item}`)
     return res.sendStatus(200)
   } catch (err) {
     loggerArr(2, req.user, `디바이스 삭제 오류 ${err}`)
