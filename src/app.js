@@ -2,7 +2,7 @@
 
 require('app-module-path').addPath(__dirname)
 const path = require('path')
-const { logger } = require('api/logger')
+const history = require('connect-history-api-fallback')
 
 // const createError = require('http-errors')
 const httpLogger = require('morgan')
@@ -74,6 +74,7 @@ io.use((socket, next) => {
   }
 })
 
+app.use(history())
 app.use('/', require('./routes'))
 app.use('/api', require('./routes/api'))
 

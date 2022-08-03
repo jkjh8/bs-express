@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const { searchArrToStr, makeSearchField } = require('api/search')
+const { searchArrToStr, makeSearchField } = require('api/logger/search')
 const mongoosePaginate = require('mongoose-paginate-v2')
 
 const eventlogSchema = new mongoose.Schema(
