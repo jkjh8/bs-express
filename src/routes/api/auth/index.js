@@ -1,9 +1,9 @@
-const express = require('express')
+import express from 'express'
 const router = express.Router()
 
-const { isAdmin, loggedIn } = require('api/users/loggedIn')
-const { isAuth, checkEmail, register, login, logout } = require('api/users')
-const { getUsers, setAdmin, deleteUser } = require('api/users/admin')
+import { isAdmin, loggedIn } from '@/api/users/loggedIn'
+import { isAuth, checkEmail, register, login, logout } from '@/api/users'
+import { getUsers, setAdmin, deleteUser } from '@/api/users/admin'
 
 // user default functions
 router.get('/', isAuth)
@@ -19,4 +19,4 @@ router.get('/users', isAdmin, getUsers)
 router.get('/setadmin', isAdmin, setAdmin)
 router.get('/deleteuser', loggedIn, deleteUser)
 
-module.exports = router
+export default router

@@ -1,8 +1,8 @@
-const passport = require('passport')
-const { loggerArr: logger } = require('api/logger')
-const User = require('db/models/user')
+import passport from 'passport'
+import { loggerArr as logger } from '@/api/logger'
+import User from '@/db/models/user'
 
-module.exports.isAuth = async (req, res) => {
+export async function isAuth(req, res) {
   if (req.isAuthenticated()) {
     return res.json({ user: req.user })
   } else {
@@ -10,7 +10,7 @@ module.exports.isAuth = async (req, res) => {
   }
 }
 
-module.exports.checkEmail = async (req, res) => {
+export async function checkEmail(req, res) {
   try {
     return res.status(200).json(await User.exists({ email: req.query.email }))
   } catch (err) {
@@ -19,7 +19,7 @@ module.exports.checkEmail = async (req, res) => {
   }
 }
 
-module.exports.register = async (req, res) => {
+export async function register(req, res) {
   try {
     const { name, email, password } = req.body
     const user = new User({ name, email, password })
@@ -32,7 +32,7 @@ module.exports.register = async (req, res) => {
   }
 }
 
-module.exports.login = async (req, res) => {
+export async function login(req, res) {
   passport.authenticate('local', async (err, user, info) => {
     if (err) return res.status(500).json({ status: false, error: err })
     if (!user) return res.json({ status: false, ...info })
@@ -50,7 +50,7 @@ module.exports.login = async (req, res) => {
   })(req, res)
 }
 
-module.exports.logout = async (req, res) => {
+export async function logout(req, res) {
   try {
     const { email } = req.user
     req.logout()

@@ -1,11 +1,9 @@
-const Devices = require('db/models/devices')
-const redis = require('db/redis')
-const { loggerArr: log } = require('api/logger')
-const { objTokv } = require('api/functions')
+import Devices from '@/db/models/devices'
+import redis from '@/db/redis'
+import { loggerArr as log } from '@/api/logger'
+import { objTokv } from '@/api/functions'
 
-const { loggedIn } = require('api/users/loggedIn')
-
-module.exports.getDevices = async (req, res) => {
+export async function getDevices(req, res) {
   try {
     return res.status(200).json(await Devices.find({}).sort({ index: 1 }))
   } catch (err) {
@@ -14,7 +12,7 @@ module.exports.getDevices = async (req, res) => {
   }
 }
 
-module.exports.addDevice = async (req, res) => {
+export async function addDevice(req, res) {
   try {
     const device = new Devices({ ...req.body })
     const r = await device.save()
@@ -26,7 +24,7 @@ module.exports.addDevice = async (req, res) => {
   }
 }
 
-module.exports.editDevice = async (req, res) => {
+export async function editDevice(req, res) {
   try {
     const r = await Devices.findOneAndUpdate({ _id: req.body._id }, req.body)
     log(3, req.user, `디바이스수정: ${objTokv(req.body)}`)
@@ -37,7 +35,7 @@ module.exports.editDevice = async (req, res) => {
   }
 }
 
-module.exports.deleteDevice = async (req, res) => {
+export async function deleteDevice(req, res) {
   try {
     const item = JSON.parse(req.query.item)
     const r = await Devices.deleteOne({ _id: item._id })
@@ -49,7 +47,7 @@ module.exports.deleteDevice = async (req, res) => {
   }
 }
 
-module.exports.checkIndex = async (req, res) => {
+export async function checkIndex(req, res) {
   try {
     const { index, id } = req.query
     return res.status(200).json({
@@ -63,7 +61,7 @@ module.exports.checkIndex = async (req, res) => {
   }
 }
 
-module.exports.checkIpaddress = async (req, res) => {
+export async function checkIpaddress(req, res) {
   try {
     const { ipaddress, id } = req.query
     return res.status(200).json({
@@ -82,7 +80,7 @@ module.exports.checkIpaddress = async (req, res) => {
 
 // let dataTimeline
 
-// module.exports.qsysRefresh = (device) => {
+// export const qsysRefresh = (device) => {
 //   qsysGetStatus(device)
 //   qsysGetPa(device)
 // }
@@ -108,9 +106,9 @@ module.exports.checkIpaddress = async (req, res) => {
 //   }
 // }
 
-// module.exports.getDevices = getDevices
+// export const getDevices = getDevices
 
-// module.exports.getDevice = async (device) => {
+// export const getDevice (device) =
 //   try {
 //     switch (device.deviceType) {
 //       case 'Q-Sys':
@@ -129,12 +127,12 @@ module.exports.checkIpaddress = async (req, res) => {
 //   }
 // }
 
-// module.exports.startTimeline = () => {
+// export const startTimeline = () => {
 //   dataTimeline = setInterval(async () => {
 //     await getDevices()
 //   }, 55000)
 // }
 
-// module.exports.clearTimeline = () => {
+// export const clearTimeline = () => {
 //   clearInterval(dataTimeline)
 // }

@@ -1,8 +1,8 @@
-const { loggerArr: logger } = require('api/logger')
-const Eventlog = require('db/models/eventlog')
-const Hangul = require('hangul-js')
+import { loggerArr as logger } from '@/api/logger'
+import Eventlog from '@/db/models/eventlog'
+import Hangul from 'hangul-js'
 
-module.exports.getEventlog = async (req, res) => {
+export const getEventlog = async (req, res) => {
   try {
     const { limit, page, search } = JSON.parse(req.query.options)
     const searchOptions = []
@@ -26,7 +26,7 @@ module.exports.getEventlog = async (req, res) => {
   }
 }
 
-module.exports.deleteAllEventlog = async (req, res) => {
+export const deleteAllEventlog = async (req, res) => {
   try {
     await Eventlog.deleteMany({})
     logger(3, req.user, '전체 이벤트로그를 삭제 하였습니다.')

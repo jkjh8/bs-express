@@ -1,14 +1,19 @@
-const express = require('express')
+import express from 'express'
 const router = express.Router()
+
+import auth from './auth'
+import eventlog from './eventlog'
+import devices from './device'
+// import zones from './zones'
 
 router.get('/', (req, res, next) => {
   res.send('<h2>API First Page</h2>')
 })
 
-router.use('/auth', require('./auth'))
-// router.use('/admin', require('./admin'))
-router.use('/eventlog', require('./eventlog'))
-router.use('/device', require('./device'))
-router.use('/zones', require('./zones'))
+// router.use('/admin', import'./admin'))
+router.use('/auth', auth)
+router.use('/eventlog', eventlog)
+router.use('/device', devices)
+// router.use('/zones', zones)
 
-module.exports = router
+export default router

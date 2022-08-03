@@ -1,6 +1,6 @@
-const Log = require('db/models/eventlog')
-const clc = require('cli-color')
-const moment = require('moment')
+import Log from '@/db/models/eventlog'
+import clc from 'cli-color'
+import moment from 'moment'
 
 moment.locale('ko')
 const levels = {
@@ -12,7 +12,7 @@ const levels = {
   5: 'admin_error'
 }
 
-module.exports.logger = async (msg) => {
+export const logger = async (msg) => {
   try {
     msg.priority = levels[msg.level]
     const logMessage = new Log(msg)
@@ -57,7 +57,7 @@ function cliLog(logs) {
   }
 }
 
-module.exports.loggerArr = async (level, user, msg) => {
+export const loggerArr = async (level, user, msg) => {
   let ID = user ?? ''
   if (typeof user === 'object') {
     ID = user.email

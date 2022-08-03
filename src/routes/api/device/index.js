@@ -1,24 +1,20 @@
-const express = require('express')
+import express from 'express'
 const router = express.Router()
-const { loggerArr } = require('api/logger')
-const redis = require('db/redis')
-const Devices = require('db/models/devices')
-// const fnDevice = require('api/device')
 
-const { loggedIn } = require('api/users/loggedIn')
-const {
+import { loggedIn } from '@/api/users/loggedIn'
+import {
   getDevices,
   addDevice,
   editDevice,
   deleteDevice,
   checkIndex,
   checkIpaddress
-} = require('api/device')
-const {
+} from '@/api/device'
+import {
   getDeviceStatus,
   getPaStatus,
   getStatusDetail
-} = require('api/device/devicesR')
+} from '@/api/device/devicesR'
 
 // default functions
 router.get('/', loggedIn, getDevices)
@@ -54,4 +50,4 @@ router.get('/refreshall', async (req, res) => {
   }
 })
 
-module.exports = router
+export default router

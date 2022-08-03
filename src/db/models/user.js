@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+import mongoose from 'mongoose'
 
 const userSchema = new mongoose.Schema(
   {
@@ -17,4 +17,4 @@ const userSchema = new mongoose.Schema(
 )
 
 userSchema.plugin(require('mongoose-bcrypt'), { rounds: 10 })
-module.exports = mongoose.model('User', userSchema)
+export default mongoose.model('User', userSchema)

@@ -1,7 +1,7 @@
-const { loggerArr: log } = require('api/logger')
-const redis = require('db/redis')
+import { loggerArr as log } from '@/api/logger'
+import redis from '@/db/redis'
 
-module.exports.getDeviceStatus = async (req, res) => {
+export async function getDeviceStatus(req, res) {
   try {
     return res.status(200).json(await redis.HGETALL('status'))
   } catch (err) {
@@ -10,7 +10,7 @@ module.exports.getDeviceStatus = async (req, res) => {
   }
 }
 
-module.exports.getPaStatus = async (req, res) => {
+export async function getPaStatus(req, res) {
   try {
     return res.json(await redis.HGETALL('pa'))
   } catch (err) {
@@ -19,7 +19,7 @@ module.exports.getPaStatus = async (req, res) => {
   }
 }
 
-module.exports.getStatusDetail = async (req, res) => {
+export async function getStatusDetail(req, res) {
   try {
     return res
       .status(200)

@@ -1,33 +1,25 @@
-const { loggerArr } = require('api/logger')
-const Devices = require('db/models/devices')
+import { loggerArr as log } from '@/api/logger'
+import Devices from '@/db/models/devices'
 
-module.exports = (io) => {
+export default function (io) {
   io.on('connect', (socket) => {
     if (socket.handshake.query.type) {
       switch (socket.handshake.query.type) {
         case 'device':
           socket.join('devices')
-          loggerArr(
-            3,
-            'Server',
-            `Socket IO connected mode Devices, ${socket.id}`
-          )
+          log(3, 'Server', `Socket IO connected mode Devices, ${socket.id}`)
           // socket.on('devices', async (command) => {
           //   fnDevices(socket, command)
           // })
           break
         case 'client':
           socket.join('clients')
-          loggerArr(
-            3,
-            'Server',
-            `Socket IO connected mode Clients, ${socket.id}`
-          )
+          log(3, 'Server', `Socket IO connected mode Clients, ${socket.id}`)
       }
     }
 
     socket.on('disconnect', () => {
-      loggerArr(4, 'Server', `Socket IO disconnected, ${socket.id}`)
+      log(4, 'Server', `Socket IO disconnected, ${socket.id}`)
     })
 
     socket.on('PA', (args) => {
@@ -35,13 +27,13 @@ module.exports = (io) => {
     })
   })
 
-  loggerArr(3, 'Server', `Socket IO Listening`)
+  log(3, 'Server', `Socket IO Listening`)
 }
 
-module.exports.sendSocketDevices = (namespace, args) => {
+export function sendSocketDevices(namespace, args) {
   io.of('devices').emit(namespace, args)
 }
 
-module.exports.sendSocketClients = (namespace, args) => {
+export function sendSocketClients(namespace, args) {
   io.of('clients').emit(namespace, args)
 }

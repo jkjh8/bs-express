@@ -1,5 +1,5 @@
-const mongoose = require('mongoose')
-const mongoosePaginate = require('mongoose-paginate-v2')
+import mongoose from 'mongoose'
+import mongoosePaginate from 'mongoose-paginate-v2'
 
 const devicelogSchema = new mongoose.Schema({
   timestamp: { type: Date },
@@ -10,4 +10,4 @@ const devicelogSchema = new mongoose.Schema({
 devicelogSchema.index({ '$**': 'text' })
 devicelogSchema.plugin(mongoosePaginate)
 
-module.exports = mongoose.model('DeviceLog', devicelogSchema)
+export default mongoose.model('DeviceLog', devicelogSchema)

@@ -1,27 +1,30 @@
 /** @format */
-
-require('app-module-path').addPath(__dirname)
-const path = require('path')
-const history = require('connect-history-api-fallback')
+import path from 'node:path'
+import history from 'connect-history-api-fallback'
 
 // const createError = require('http-errors')
-const httpLogger = require('morgan')
-const cors = require('cors')
-const express = require('express')
-const { Server } = require('socket.io')
+import httpLogger from 'morgan'
+import cors from 'cors'
+import express from 'express'
+import { Server } from 'socket.io'
 
-const cookieParser = require('cookie-parser')
-const session = require('express-session')
-const passport = require('passport')
-const MongoStore = require('connect-mongo')
+import cookieParser from 'cookie-parser'
+import session from 'express-session'
+import passport from 'passport'
+import MongoStore from 'connect-mongo'
 
 // connect db
-const mongoose = require('db/mongodb')
+import mongoose from './db/mongodb'
+
+// routes
+import routes from './routes'
+import apiRoutes from './routes/api'
 
 // init app
 const app = express()
 global.io = new Server()
-require('./socketio')(io)
+import socket from '@/socketio'
+socket(io)
 
 // cors
 app.use(
@@ -32,11 +35,12 @@ app.use(
     credentials: true
   })
 )
+
+// etc plugins
 app.use(httpLogger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
-app.use(express.static(path.join(__dirname, 'public', 'spa')))
 
 // init session
 const sessionOptions = session({
@@ -53,10 +57,12 @@ const sessionOptions = session({
 app.use(sessionOptions)
 
 // passport
-require('api/passport')()
+import initPassport from '@/api/users/passport'
+initPassport()
 app.use(passport.initialize())
 app.use(passport.session())
 
+// session socket io
 const wrap = (middleware) => (socket, next) =>
   middleware(socket.request, {}, next)
 
@@ -74,9 +80,11 @@ io.use((socket, next) => {
   }
 })
 
+// init routes
 app.use(history())
-app.use('/', require('./routes'))
-app.use('/api', require('./routes/api'))
+app.use('/', routes)
+app.use('/api', apiRoutes)
+app.use(express.static(path.join(__dirname, 'public', 'spa')))
 
 // catch 404 and forward to error handler
 // app.use(function (req, res, next) {
@@ -86,4 +94,4 @@ app.use('/api', require('./routes/api'))
 // const { startTimeline } = require('./api/device')
 // startTimeline()
 
-module.exports = app
+export default app

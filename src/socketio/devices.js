@@ -1,6 +1,6 @@
-const Devices = require('db/models/devices')
+import Devices from '@/db/models/devices'
 
-module.exports = async (socket, command) => {
+export default async function (socket, command) {
   switch (command) {
     case 'get':
       socket.emit('devices', await Devices.find({}).sort({ index: 1 }))

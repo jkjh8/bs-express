@@ -4,9 +4,9 @@
  * Module dependencies.
  */
 
-const app = require('../app')
-const { loggerArr } = require('api/logger')
-const http = require('http')
+import app from '../app.js'
+import { loggerArr as log } from '../api/logger'
+import http from 'http'
 
 /**
  * Get port from environment and store in Express.
@@ -22,13 +22,13 @@ app.set('port', port)
 const server = http.createServer(app)
 
 // socket io attach
-io.attach(server, {
-  origin: function (origin, callback) {
-    callback(null, origin)
-  },
-  credentials: true
-})
-loggerArr(3, 'Server', 'Socket IO Attach Server')
+// io.attach(server, {
+//   origin: function (origin, callback) {
+//     callback(null, origin)
+//   },
+//   credentials: true
+// })
+log(3, 'Server', 'Socket IO Attach Server')
 /**
  * Listen on provided port, on all network interfaces.
  */
@@ -71,10 +71,10 @@ function onError(error) {
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      loggerArr(5, 'Server', `${bind} requires elevated privileges`)
+      log(5, 'Server', `${bind} requires elevated privileges`)
       process.exit(1)
     case 'EADDRINUSE':
-      loggerArr(5, 'Server', `${bind} is already in use`)
+      log(5, 'Server', `${bind} is already in use`)
       process.exit(1)
     default:
       throw error
@@ -88,5 +88,5 @@ function onError(error) {
 function onListening() {
   var addr = server.address()
   var bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
-  loggerArr(4, 'Server', `Listening on ${bind}`)
+  log(4, 'Server', `Listening on ${bind}`)
 }

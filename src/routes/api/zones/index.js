@@ -4,24 +4,17 @@ const { loggerArr } = require('api/logger')
 const Zones = require('db/models/zones')
 const { qsysSetTx } = require('api/device/qsys')
 
-router.get('/', async (req, res) => {
-  try {
-    return res.json(
-      await Zones.find({})
-        .populate('core')
-        .populate({ path: 'children', options: { retainNullValues: true } })
-    )
-  } catch (err) {
-    loggerArr(5, req.user, `방송구간 호출 오류 ${err}`)
-    return res.status(500).json({ error: err })
-  }
-})
+const { loggedIn } = require('api/users/loggedIn')
+const { getZones } = require('api/zones')
 
+router.get('/', loggedIn, getZones)
 router.get('/idxexists', async (req, res) => {
   try {
     const { index, id } = req.query
     return res.json({
-      result: await Zones.exists({ $and: [ { index: index }, { _id: { $ne: id } } ] })
+      result: await Zones.exists({
+        $and: [{ index: index }, { _id: { $ne: id } }]
+      })
     })
   } catch (err) {
     loggerArr(5, req.user, `방송구간 인덱스 검증 오류 ${err}`)
@@ -32,7 +25,9 @@ router.get('/idxexists', async (req, res) => {
 router.get('/coreexists', async (req, res) => {
   try {
     const { coreid, zoneid } = req.query
-    return res.json(await Zones.exists({ $and: [{ core: coreid }, { _id: { $ne: zoneid } }] }))
+    return res.json(
+      await Zones.exists({ $and: [{ core: coreid }, { _id: { $ne: zoneid } }] })
+    )
   } catch (err) {
     loggerArr(5, req.user, `방송구간 인덱스 검증 오류 ${err}`)
     return res.status(500).json({ error: err })

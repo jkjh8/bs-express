@@ -1,5 +1,5 @@
-const { loggerArr } = require('api/logger')
-const { createClient } = require('redis')
+import { loggerArr } from '@/api/logger'
+import { createClient } from 'redis'
 
 const client = createClient({
   url: 'redis://redis-server:6379',
@@ -20,4 +20,4 @@ async function connectRedis() {
 
 connectRedis()
 
-module.exports = client
+export default client

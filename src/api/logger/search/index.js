@@ -1,10 +1,10 @@
-const Hangul = require('hangul-js')
+import Hangul from 'hangul-js'
 
-module.exports.searchArrToStr = function (arr) {
+export const searchArrToStr = function (arr) {
   return Hangul.disassembleToString(arr.join('#').replace(/ /g, ''))
 }
 
-module.exports.makeSearchField = function (schema, searchField, getter) {
+export const makeSearchField = function (schema, searchField, getter) {
   schema.pre('save', function () {
     this[searchField] = getter(this)
   })
