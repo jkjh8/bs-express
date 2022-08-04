@@ -1,15 +1,15 @@
-module.exports.loggedIn = (req, res, next) => {
+export const loggedIn = (req, res, next) => {
   if (req.user) {
     next()
   } else {
-    res.redirect(403, `/login`)
+    res.status(403).send(null)
   }
 }
 
-module.exports.isAdmin = (req, res, next) => {
+export const isAdmin = (req, res, next) => {
   if (req.user && req.user.admin) {
     next()
   } else {
-    res.redirect(403, '/')
+    res.status(403).send(null)
   }
 }

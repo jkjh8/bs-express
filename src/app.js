@@ -1,6 +1,6 @@
 /** @format */
 import path from 'node:path'
-import history from 'connect-history-api-fallback'
+// import history from 'connect-history-api-fallback'
 
 // const createError = require('http-errors')
 import httpLogger from 'morgan'
@@ -81,7 +81,7 @@ io.use((socket, next) => {
 })
 
 // init routes
-app.use(history())
+// app.use(history())
 app.use('/', routes)
 app.use('/api', apiRoutes)
 app.use(express.static(path.join(__dirname, 'public', 'spa')))
