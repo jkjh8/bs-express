@@ -1,5 +1,4 @@
 import Devices from '@/db/models/devices'
-import redis from '@/db/redis'
 import { loggerArr as log } from '@/api/logger'
 import { objTokv } from '@/api/functions'
 
@@ -37,7 +36,7 @@ export async function editDevice(req, res) {
 
 export async function deleteDevice(req, res) {
   try {
-    const item = JSON.parse(req.query.item)
+    const item = JSON.parse(req.params.value)
     const r = await Devices.deleteOne({ _id: item._id })
     log(3, req.user, `디바이스삭제: ${objTokv(item)}`)
     return res.status(200).json(r)
@@ -49,7 +48,7 @@ export async function deleteDevice(req, res) {
 
 export async function checkIndex(req, res) {
   try {
-    const { index, id } = req.query
+    const { index, id } = JSON.parse(req.params.value)
     return res.status(200).json({
       result: await Devices.exists({
         $and: [{ index: index }, { _id: { $ne: id } }]
@@ -63,7 +62,8 @@ export async function checkIndex(req, res) {
 
 export async function checkIpaddress(req, res) {
   try {
-    const { ipaddress, id } = req.query
+    const { ipaddress, id } = JSON.parse(req.params.value)
+    console.log(ipaddress, id)
     return res.status(200).json({
       result: await Devices.exists({
         $and: [{ ipaddress: ipaddress }, { _id: { $ne: id } }]

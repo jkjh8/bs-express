@@ -20,11 +20,11 @@ import {
 router.get('/', loggedIn, getDevices)
 router.post('/', loggedIn, addDevice)
 router.put('/', loggedIn, editDevice)
-router.get('/delete', loggedIn, deleteDevice)
+router.delete('/:value', loggedIn, deleteDevice)
 
 // check exists functions
-router.get('/idxexists', loggedIn, checkIndex)
-router.get('/ipexists', loggedIn, checkIpaddress)
+router.get('/idxexists/:value', loggedIn, checkIndex)
+router.get('/ipexists/:value', loggedIn, checkIpaddress)
 
 // get status from redis
 router.get('/status', loggedIn, getDeviceStatus)
