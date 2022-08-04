@@ -31,6 +31,9 @@ router.get('/status', loggedIn, getDeviceStatus)
 router.get('/pa', loggedIn, getPaStatus)
 router.get('/getDetail', loggedIn, getStatusDetail)
 
+// for settop
+router.get('/qcontrol', getDevices)
+
 // 외부 모델로 전환 필요
 router.post('/refresh', async (req, res) => {
   try {
